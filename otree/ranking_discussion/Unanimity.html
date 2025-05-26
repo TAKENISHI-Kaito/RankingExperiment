@@ -1,12 +1,12 @@
 {% block content %}
 <body oncontextmenu="return false;">
     <link rel="stylesheet" href="{% static 'global/main.css' %}" />
-    <h3>全員一致しました！</h3>
+    <h3>全員の意見が一致しました！</h3>
     <br>
-    <p>以下が全員一致した解答です:</p>
+    <p>以下がこのグループでの解答です。</p>
     <p><b>{{ decision }}</b></p>
     <br>
-    <p>次の問題に進んでください。</p>
+    <p>読み終わったら、「次へ」を押してください。</p>
     <br>
     <button type="submit">次へ</button>
 {% endblock %}

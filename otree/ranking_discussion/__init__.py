@@ -31,9 +31,17 @@ class Group(BaseGroup):
     loop_count = models.IntegerField(initial=1)
 
 class Player(BasePlayer):
-    id_number = models.IntegerField(
+    typing_test = models.LongStringField(
         initial = None,
-        verbose_name = 'あなたのID番号を入力してください（半角）。'
+        verbose_name = 'この実験ではキーボードで文字を入力しながら行います。あなたがキーボードを使えるかどうか確認するために、「2025北海道大学」と入力してください(2025は半角)。',
+    )
+    group_id_number = models.IntegerField(
+        initial = None,
+        verbose_name = 'あなたのグループID番号を入力してください（半角）。'
+        )
+    individual_id_number = models.IntegerField(
+        initial = None,
+        verbose_name = 'あなたの個人ID番号を入力してください（半角）。'
         )
     gender = models.CharField(
         initial = None,
@@ -58,44 +66,45 @@ class Player(BasePlayer):
 def creating_session(subsession: Subsession):
     if subsession.round_number == 1:
         if subsession.session.vars.get('shuffled_tasks_info') is None:
-            shuffled_tasks_info = C.TASKS_INFO.copy()
-            rng.shuffle(shuffled_tasks_info)
-            for task in shuffled_tasks_info:
-                paired = list(zip(task['candidate'], task['ranking']))
-                rng.shuffle(paired)
-                task['candidate'], task['ranking'] = zip(*paired)
-                task['candidate'] = list(task['candidate'])
-                task['ranking'] = list(task['ranking'])
-            subsession.session.vars['shuffled_tasks_info'] = shuffled_tasks_info
+            question_id = 1
+            original_tasks_info = []
+            for task in C.TASKS_INFO:
+                task_copy = task.copy()
+                paired = list(zip(task_copy['candidate'], task_copy['ranking']))
+                task_questions = []
+                for sub_id, ((opt1, opt2), (r1, r2)) in enumerate(paired, start=1):
+                    task_questions.append({
+                        'question_id': question_id,
+                        'task_id': task_copy['task'],
+                        'kind': task_copy['kind'],
+                        'question': task_copy['question'],
+                        'subquestion_id': sub_id,
+                        'option1': opt1,
+                        'option2': opt2,
+                        'rank1': r1,
+                        'rank2': r2
+                    })
+                    question_id += 1
+                task_copy['questions'] = task_questions
+                original_tasks_info.append(task_copy)
+            rng.shuffle(original_tasks_info)
+            for task in original_tasks_info:
+                rng.shuffle(task['questions'])
+            subsession.session.vars['shuffled_tasks_info'] = original_tasks_info
         for group in subsession.get_groups():
             players = group.get_players()
             for p in players:
                 task_data = []
-                question_id = 1
                 for task in subsession.session.vars['shuffled_tasks_info']:
-                    task_id = task['task']
-                    task_kind = task['kind']
-                    question = task['question']
-                    candidates = task['candidate']
-                    rankings = task['ranking']
-                    for subquestion_id, ((option1, option2), (rank1, rank2)) in enumerate(zip(candidates, rankings), start=1):
+                    questions = task['questions']
+                    for q in questions:
+                        q_copy = q.copy()
                         if rng.random() < 0.5:
-                            option1, option2 = option2, option1
-                            rank1, rank2 = rank2, rank1
-                        task_data.append({
-                            'question_id': question_id,
-                            'task_id': task_id,
-                            'kind': task_kind,
-                            'question': question,
-                            'subquestion_id': subquestion_id,
-                            'option1': option1,
-                            'option2': option2,
-                            'rank1': rank1,
-                            'rank2': rank2
-                        })
-                        question_id += 1
-                for order_id, question in enumerate(task_data, start=1):
-                    question['order_id'] = order_id
+                            q_copy['option1'], q_copy['option2'] = q_copy['option2'], q_copy['option1']
+                            q_copy['rank1'], q_copy['rank2'] = q_copy['rank2'], q_copy['rank1']
+                        task_data.append(q_copy)
+                for order_id, q in enumerate(task_data, start=1):
+                    q['order_id'] = order_id
                 p.participant.vars['all_tasks'] = task_data
                 p.participant.vars['current_task_index'] = 0
             num_tasks = len(players[0].participant.vars['all_tasks'])
@@ -112,6 +121,9 @@ def not_finished_all_tasks(player):
 
 # PAGES
 class Stand_by(Page):
+    form_model = 'player'
+    form_fields = ['typing_test']
+
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1
@@ -119,18 +131,10 @@ class Stand_by(Page):
 
 class Demographic(Page):
     form_model = 'player'
-    form_fields = ['id_number', 'gender', 'age']
+    form_fields = ['group_id_number', 'individual_id_number', 'gender', 'age']
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1
-
-    def error_message(player, values):
-        if not values['id_number']:
-            return 'ID番号を入力してください。'
-        if not values['gender']:
-            return 'いずれかの性別を選択してください。'
-        if not values['age']:
-            return '年齢を入力してください。'
 
     @staticmethod
     def before_next_page(player, timeout_happened):
@@ -212,16 +216,6 @@ class First_Make_Decision(Page):
         }
 
     @staticmethod
-    def error_message(player, values):
-        errors = {}
-        if not values.get('decision_making'):
-            errors['decision_making'] = '回答を選択してください。'
-        if not values.get('confidence'):
-            errors['confidence'] = '自信の程度を教えてください。'
-        if errors:
-            return errors
-
-    @staticmethod
     def before_next_page(player, timeout_happened):
         idx = player.participant.vars['current_task_index']
         start_time = player.participant.vars.get('start_time')
@@ -263,7 +257,7 @@ class Wait_Chat(WaitPage):
 
 class Chat(Page):
     form_model = 'player'
-    # timeout_seconds = 60
+    timeout_seconds = 60
 
     @staticmethod
     def is_displayed(player):
@@ -363,16 +357,6 @@ class Nth_Make_Decision(Page):
         }
 
     @staticmethod
-    def error_message(player, values):
-        errors = {}
-        if not values.get('decision_making'):
-            errors['decision_making'] = '回答を選択してください。'
-        if not values.get('confidence'):
-            errors['confidence'] = '自信の程度を教えてください。'
-        if errors:
-            return errors
-
-    @staticmethod
     def before_next_page(player, timeout_happened):
         idx = player.participant.vars['current_task_index']
         start_time = player.participant.vars.get('start_time')
@@ -433,8 +417,8 @@ class Unanimity(Page):
 
     @staticmethod
     def vars_for_template(player):
-        prev_round = player.round_number - 1 if player.round_number != 1 else player.round_number
-        decision = player.participant.vars.get(f'decision_making_round_{prev_round}')
+        round_number = player.round_number
+        decision = player.participant.vars.get(f'decision_making_round_{round_number}')
         return {'decision': decision}
 
     @staticmethod
@@ -489,7 +473,6 @@ page_sequence = [
     Wait_Instruction,
     Question,
     First_Make_Decision,
-    # Pre_Chat,
     Wait_Chat,
     Chat,
     Nth_Make_Decision,
@@ -506,7 +489,7 @@ def custom_export(players):
         'gender', 'age',
         'order_id','questionID', 'task_id', 'kind', 'subquestionID',
         'option1', 'option2', 'rank1', 'rank2',
-        'choice', 'true_false', 'confidence', 'time_spent'
+        'time_step', 'choice', 'true_false', 'confidence', 'time_spent'
     ]
     for player in players:
         if player.round_number == C.NUM_ROUNDS:
@@ -517,7 +500,8 @@ def custom_export(players):
                     player.participant.code,
                     player.session.code,
                     player.participant.time_started_utc,
-                    player.participant.vars.get('id_number'),
+                    player.participant.vars.get('group_id_number'),
+                    player.participant.vars.get('individual_id_number'),
                     player.participant.vars.get('gender'),
                     player.participant.vars.get('age'),
                     task['order_id'],
