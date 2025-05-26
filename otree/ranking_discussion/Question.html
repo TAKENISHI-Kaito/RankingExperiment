@@ -1,0 +1,36 @@
+{{ block content }}
+<body oncontextmenu="return false;">
+    <link rel="stylesheet" href="{% static 'global/main.css' %}" />
+
+    <p> これから，<b> {{ question }} </b>はどちらか考えてもらいます。</p>
+
+    <div style="background-color: #e6e6e6;">
+        <h4>問題</h4>
+        <p>
+            <b> {{ question }} </b>はどちらですか？
+        </p>
+        <ul ul  style="list-style-type:circle;">
+            <li> {{ option1 }} </li>
+            <li> {{ option2 }} </li>
+        </ul>
+    </div>
+
+    {% if annotations %}
+        <small>注）</small>
+    {% endif %}
+    <ul>
+        {% for note in annotations %}
+            <li><small>{{ note }}</small></li>
+        {% endfor %}
+    </ul>
+
+    <br>
+
+    <p>
+        「次へ」を押して解答を始めてください。
+    </p>
+
+        <br>
+        <button type="submit">次へ</button>
+</body>
+{{ endblock }}

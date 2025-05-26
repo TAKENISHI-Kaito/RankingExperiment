@@ -1,0 +1,201 @@
+{{ block title }}
+先ほどの問題について話し合ってください。
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .otree-chat {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        height: 330px;
+        padding: 5px 5px 0 5px;
+        border-radius: 7px;
+        background-color: #fbfeff;
+    }
+
+    .otree-chat__messages {
+        padding: 0 5px;
+        height: 260px !important;
+        background-color: #fbfeff !important;
+        overflow-x: hidden !important;
+        border-bottom: 1px solid #eee;
+    }
+
+    .otree-chat__nickname {
+        width: 920px !important;
+        font-size: 13px;
+        color: #197dcfa3 !important;
+    }
+
+    .otree-chat__body {
+        display: block;
+        border: solid #6f80a575;
+        border-width: 0 2px 2px 0;
+        border-radius: 7px;
+        padding: 8px 10px;
+        margin: 0 400px 6px 10px;
+        box-shadow: 4px 4px 4px -1px rgb(0 0 0 / 8%);
+        font-size: 16px;
+        background-color: #34b0e47d;
+    }
+
+    .otree-chat__input {
+        width: 800px;
+        height: 38px;
+        border: none;
+        border-radius: 7px;
+        background-color: #eee;
+        padding: 0 10px;
+        margin: 8px 10px 0 10px;
+        font-size: 16;
+    }
+
+    .otree-chat__input:focus {
+        outline: none;
+        border: 1px solid #05b1d1;
+    }
+
+    .otree-chat__btn-send {
+        outline: none;
+        border: 1px solid #05b1d1;
+        background-color: #34b0e47d;
+    }
+
+    .btn {
+        height: 38px;
+        font-size: 17px !important;
+        margin: 8px 10px 0 0;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 4px;
+        border: none;
+    }
+
+    .modal-element {
+        background-color: white;
+        margin-bottom: 4px;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .modal-value {
+        font-size: 12px;
+        float: left;
+        margin-top: 11px;
+    }
+
+    .bi-info-circle-fill {
+        color: #0096ff;
+        float: left;
+        margin: 11px 11px 11px 15px;
+    }
+
+    .bi-x {
+        color: rgb(160, 160, 160);
+        float: left;
+        margin: 11px 0 0 38px;
+    }
+
+    .field {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    ul{
+        display: flex;
+    }
+    li{
+        list-style: none;
+        margin-left: 20px;
+    }
+</style>
+
+<link rel="stylesheet" href="{% static 'global/main.css' %}" />
+{{ endblock }}
+
+{{ block content }}
+<input type="hidden" id="my-nickname" value="{{ nickname }}">
+
+<div style="background: #34b0e47d; border: 1px solid #34b0e47d; padding-left: 30px;">
+    <b>問題</b>：{{ question }}はどちらですか？
+</div>
+<div style="border: 1px solid #34b0e47d; font-size: 100%; padding: 20px;">
+    <div style="background:#FFF3CD; border: 1px solid 	#FFF3CD; padding-left: 10px;">
+        <b>{{ option1 }}</b>を選択した人
+    </div>
+    <div style="border: 1px solid #FFF3CD; font-size: 100%; padding: 20px;">
+        <ul>
+            {% for d in decisions %}
+                {% if d.decision == option1 %}
+                    <li>
+                        {{ d.nickname }}
+                        {% if d.nickname == nickname %}
+                            (あなた)
+                        {% endif %}
+                    </li>
+                    、
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    <div style="background: #FFF3CD; border: 1px solid #FFF3CD; padding-left: 10px;">
+        <b>{{ option2 }}</b>を選択した人
+    </div>
+    <div style="border: 1px solid #FFF3CD; font-size: 100%; padding: 20px;">
+        <ul>
+            {% for d in decisions %}
+                {% if d.decision == option2 %}
+                    <li>
+                        {{ d.nickname }}
+                        {% if d.nickname == nickname %}
+                            (あなた)
+                        {% endif %}
+                        、
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<br>
+
+{% if chat_history %}
+<h3>過去の話し合い</h3>
+<div class="otree-chat__messages">
+    {% for msg in chat_history %}
+        <div>
+            <span class="otree-chat__nickname">{{ msg.nickname }}{% if msg.nickname == nickname %}（あなた）{% endif %}</span><br>
+            <span class="otree-chat__body">{{ msg.message }}</span>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<h3>チャット画面</h3>
+{{ chat nickname=nickname}}
+
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    function sendChat() {
+        // const nickname = document.getElementsByClassName('otree-chat__nickname')[0].innerText;
+        const nickname = document.getElementById('my-nickname').value;
+        const message = document.getElementsByClassName('otree-chat__input')[0].value;
+        liveSend({'nickname': nickname, 'message': message});
+    }
+
+    const button = document.getElementsByClassName('otree-chat__btn-send')[0];
+    button.addEventListener('click', sendChat, false);
+
+    const input = document.getElementsByClassName('otree-chat__input')[0];
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+    });
+</script>
+
+{{ endblock }}

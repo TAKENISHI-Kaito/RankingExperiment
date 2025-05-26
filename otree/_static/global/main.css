@@ -1,0 +1,140 @@
+@charset "UTF-8";
+
+@import url(https://fonts.googleapis.com/css?family=Roboto);
+
+/* body,
+p,
+td,
+li {
+  /* Normal text and table cell text */
+  /* font-family: "メイリオ", "Meiryo", sans-serif;
+  font-size: 20px;
+  color: Black;
+} */
+
+* {
+  /* Normal text */
+  font-family: "メイリオ", "Meiryo", sans-serif;
+  font-size: 20pt;
+  color: Black;
+}
+
+.btn {
+  float: right;
+  font-size: 24px;
+}
+
+.otree-btn-next {
+  float: right;
+  font-size: 24px;
+}
+
+p.caption {
+  /* Caption */
+  font-family: "Arial", "Times New Roman", "Meiryo", sans-serif;
+  font-size: 20px;
+  padding: 0.5em;
+  text-align: center;
+  font-weight: bold;
+}
+
+.button {
+  font-size: 24px;
+}
+
+strong {
+  font-size: 24px;
+  font-family: "メイリオ", "Meiryo", sans-serif;
+}
+
+h1 {
+  /* Header 1 */
+  font-family: "Meiryo", sans-serif;
+  font-size: 40pt;
+  font-weight: bold;
+  color: black;
+}
+
+h2 {
+  /* Header 2 */
+  font-family: "Meiryo", sans-serif;
+  font-size: 32px;
+  font-weight: bold;
+  color: black;
+}
+
+h3 {
+  /* Header 3 */
+  font-family: "Meiryo", sans-serif;
+  font-size: 28pt;
+  font-weight: bold;
+  color: black;
+}
+
+h4 {
+  /* Header 4 */
+  font-family: "Meiryo", sans-serif;
+  font-size: 24pt;
+  /* padding: 0.25em 0.25em 0.25em 0.75em; */
+  color: black;
+}
+
+.small-font {
+    font-size: 12pt; /* ここでフォントサイズを小さく設定 */
+}
+
+.main-container {
+  max-width: 1600px !important;
+}
+
+.card {
+  font-size: 0.9rem;
+  border: 1px solid black;
+  background-color: #cfcfcf;
+  padding: 20px;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-size: 24px;
+}
+
+.card p {
+  font-size: 18px;
+}
+
+h4[class="card-header"] {
+  background-color: #c7c7c7;
+}
+
+/* 中央寄せのためのstyling */
+.outer {
+  /* max-width: 80%; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.inner {
+  position: absolute;
+  /* text-align: center; */
+  top: 20%;
+  /* left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  -webkit- transform: translateY(-50%) translateX(-50%); */
+}
+
+.outer_more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.inner_more {
+  position: absolute;
+  text-align: center;
+  top: 20%;
+  /* left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  -webkit- transform: translateY(-50%) translateX(-50%); */
+}
