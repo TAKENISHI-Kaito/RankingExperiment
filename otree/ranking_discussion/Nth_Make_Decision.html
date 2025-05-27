@@ -11,12 +11,12 @@
         <form method="post">
             <p>
                 <label>
-                    <input type="radio" name="decision_making" value="{{ option1 }}" required> {{ option1 }}
+                    <input type="radio" name="nth_decision_making" value="{{ option1 }}" required> {{ option1 }}
                 </label>
             </p>
             <p>
                 <label>
-                    <input type="radio" name="decision_making" value="{{ option2 }}" required> {{ option2 }}
+                    <input type="radio" name="nth_decision_making" value="{{ option2 }}" required> {{ option2 }}
                 </label>
             </p>
 
@@ -27,7 +27,7 @@
             <div class="confidence-container">
                 {% for choice in confidence_choices %}
                     <label class="confidence-option">
-                        <input type="radio" name="confidence" value="{{ choice }}" required> {{ choice }}
+                        <input type="radio" name="nth_confidence" value="{{ choice }}" required> {{ choice }}
                     </label>
                 {% endfor %}
             </div>

@@ -131,10 +131,10 @@
                     <li>
                         {{ d.nickname }}
                         {% if d.nickname == nickname %}
-                            (あなた)
+                            （あなた）
                         {% endif %}
                     </li>
-                    、
+                    　
                 {% endif %}
             {% endfor %}
         </ul>
@@ -149,10 +149,10 @@
                     <li>
                         {{ d.nickname }}
                         {% if d.nickname == nickname %}
-                            (あなた)
+                            （あなた）
                         {% endif %}
-                        、
                     </li>
+                    　
                 {% endif %}
             {% endfor %}
         </ul>
@@ -162,7 +162,7 @@
 <br>
 
 {% if chat_history %}
-<h3>過去の会話</h3>
+過去の会話の内容
 <div class="otree-chat__messages">
     {% for msg in chat_history %}
         <div>

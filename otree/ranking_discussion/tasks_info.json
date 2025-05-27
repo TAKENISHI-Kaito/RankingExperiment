@@ -1,13 +1,5 @@
 [
     {
-        "task": "population",
-        "kind": "都市の人口",
-        "question": "人口が多い都市",
-        "candidate": [["ベルリン", "ミュンヘン"]],
-        "ranking": [[1, 2]],
-        "annotation": []
-    },
-    {
         "task": "homicide",
         "kind": "殺人による死亡者数",
         "question": "殺人による年間死亡者数が多い国",

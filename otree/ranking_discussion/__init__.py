@@ -53,8 +53,15 @@ class Player(BasePlayer):
         initial = None,
         verbose_name = 'あなたの年齢を教えてください。'
         )
-    decision_making = models.LongStringField()
-    confidence = models.CharField(
+    first_decision_making = models.LongStringField()
+    first_confidence = models.CharField(
+        initial = None,
+        choices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+        verbose_name = 'その判断にどのくらい自信がありますか？',
+        widget = widgets.RadioSelect()
+    )
+    nth_decision_making = models.LongStringField()
+    nth_confidence = models.CharField(
         initial = None,
         choices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
         verbose_name = 'その判断にどのくらい自信がありますか？',
@@ -138,7 +145,8 @@ class Demographic(Page):
 
     @staticmethod
     def before_next_page(player, timeout_happened):
-        player.participant.vars['id_number'] = player.id_number
+        player.participant.vars['group_id_number'] = player.group_id_number
+        player.participant.vars['individual_id_number'] = player.individual_id_number
         player.participant.vars['gender'] = player.gender
         player.participant.vars['age'] = player.age
 
@@ -150,17 +158,6 @@ class Instruction(Page):
     def is_displayed(player):
         return player.round_number == 1
 
-    @staticmethod
-    def vars_for_template(player):
-        return {
-            **{f'kind_{i+1}': task['kind'] for i, task in enumerate(C.TASKS_INFO[:4])},
-            **{f'question_{i+1}': task['question'] for i, task in enumerate(C.TASKS_INFO[:4])},
-            **{f'example1_{i+1}': task['example'][0] for i, task in enumerate(C.TASKS_INFO[:4])},
-            **{f'example2_{i+1}': task['example'][1] for i, task in enumerate(C.TASKS_INFO[:4])},
-            **{f'annotations_{i+1}': task['annotation'] for i, task in enumerate(C.TASKS_INFO[:4])},
-            **{f'instruction_{i+1}': task['instruction'][0] for i, task in enumerate(C.TASKS_INFO[:4])},
-        }
-
 class Wait_Instruction(WaitPage):
     pass
 
@@ -168,7 +165,8 @@ class Question(Page):
     @staticmethod
     def is_displayed(player):
         prev = player.round_number - 1 if player.round_number != 1 else player.round_number
-        return player.round_number == 1 or player.participant.vars.get(f'is_finished_round_{prev}') is True
+        idx = player.participant.vars['current_task_index']
+        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx + 1 != len(group.get_players()[0].participant.vars['all_tasks']))
 
     @staticmethod
     def vars_for_template(player):
@@ -187,12 +185,13 @@ class Question(Page):
 
 class First_Make_Decision(Page):
     form_model = 'player'
-    form_fields = ['decision_making', 'confidence']
+    form_fields = ['first_decision_making', 'first_confidence']
 
     @staticmethod
     def is_displayed(player):
         prev = player.round_number - 1 if player.round_number != 1 else player.round_number
-        return player.round_number == 1 or player.participant.vars.get(f'is_finished_round_{prev}') is True
+        idx = player.participant.vars['current_task_index']
+        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx + 1 != len(group.get_players()[0].participant.vars['all_tasks']))
 
     @staticmethod
     def vars_for_template(player):
@@ -200,9 +199,9 @@ class First_Make_Decision(Page):
         idx = player.participant.vars['current_task_index']
         current_question = player.participant.vars['all_tasks'][idx]
         current_kind = current_question['kind']
-        pair_num = sum(1 for q in player.participant.vars['all_tasks'][:idx] if q['kind'] == current_kind) + 1
         return {
-            'pair_num': pair_num,
+            'idx': idx + 1,
+            'sum_questions': len(player.participant.vars['all_tasks']),
             'order_id': current_question['order_id'],
             'question_id': current_question['question_id'],
             'task_id': current_question['task_id'],
@@ -223,14 +222,14 @@ class First_Make_Decision(Page):
             elapsed_time = time() - start_time
             player.participant.vars[f'elapsed_time_{idx}'] = elapsed_time
         current_question = player.participant.vars['all_tasks'][idx]
-        choice = player.decision_making
+        choice = player.first_decision_making
         true_false = None
         if choice == current_question['option1']:
             true_false = 1 if current_question['rank1'] < current_question['rank2'] else 0
         elif choice == current_question['option2']:
             true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
-        confidence = player.confidence
-        player.participant.vars[f'decision_making_round_{player.round_number}'] = player.decision_making
+        confidence = player.first_confidence
+        player.participant.vars[f'decision_making_round_{player.round_number}'] = player.first_decision_making
         player.participant.vars[f'choice_{idx}_{player.round_number}'] = {
             'question_id': current_question['question_id'],
             'round': player.round_number,
@@ -241,18 +240,12 @@ class First_Make_Decision(Page):
         }
 
 
-class Pre_Chat(Page):
-    @staticmethod
-    def is_displayed(player):
-        prev = player.round_number - 1 if player.round_number != 1 else player.round_number
-        return player.round_number == 1 or player.participant.vars.get(f'is_finished_round_{prev}') is True
-
-
 class Wait_Chat(WaitPage):
     @staticmethod
     def is_displayed(player):
         prev = player.round_number - 1 if player.round_number != 1 else player.round_number
-        return player.round_number == 1 or player.participant.vars.get(f'is_finished_round_{prev}') is True
+        idx = player.participant.vars['current_task_index']
+        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx + 1 != len(group.get_players()[0].participant.vars['all_tasks']))
 
 
 class Chat(Page):
@@ -275,7 +268,6 @@ class Chat(Page):
         idx = player.participant.vars['current_task_index']
         nickname = player.participant.vars['nickname_map'][idx]
         message = data['message']
-        idx = player.participant.vars['current_task_index']
         timestamped_message = {
             'nickname': nickname,
             'id_in_group': player.id_in_group,
@@ -285,14 +277,14 @@ class Chat(Page):
             if f'chat_history_{idx}' not in p.participant.vars:
                 p.participant.vars[f'chat_history_{idx}'] = []
             p.participant.vars[f'chat_history_{idx}'].append(timestamped_message)
-            # print(f"[{p.id_in_group}] {p.participant.vars[f'chat_history_{idx}']}")
         return {0: timestamped_message}
 
 
     @staticmethod
     def vars_for_template(player):
         prev_round = player.round_number - 1 if player.round_number != 1 else player.round_number
-        decision = player.participant.vars.get(f'decision_making_round_{prev_round}')
+        if player.round_number == 1 or player.participant.vars.get(f'is_finished_round_{prev_round}') is True:
+            decision = player.participant.vars.get(f'decision_making_round_{prev_round}')
         idx = player.participant.vars['current_task_index']
         current_question = player.participant.vars['all_tasks'][idx]
         nickname = player.participant.vars['nickname_map'][idx]
@@ -322,7 +314,7 @@ class Chat(Page):
 
 class Nth_Make_Decision(Page):
     form_model = 'player'
-    form_fields = ['decision_making', 'confidence']
+    form_fields = ['nth_decision_making', 'nth_confidence']
 
     @staticmethod
     def is_displayed(player):
@@ -364,15 +356,15 @@ class Nth_Make_Decision(Page):
             elapsed_time = time() - start_time
             player.participant.vars[f'elapsed_time_{idx}'] = elapsed_time
         current_question = player.participant.vars['all_tasks'][idx]
-        choice = player.decision_making
+        choice = player.nth_decision_making
         true_false = None
         if choice == current_question['option1']:
             true_false = 1 if current_question['rank1'] < current_question['rank2'] else 0
         elif choice == current_question['option2']:
             true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
-        confidence = player.confidence
-        player.participant.vars[f'decision_making_round_{player.round_number}'] = player.decision_making
-        player.participant.vars[f'choice_{idx}_{player.round_number}'] = {
+        confidence = player.nth_confidence
+        player.participant.vars[f'decision_making_round_{player.round_number}'] = player.nth_decision_making
+        player.participant.vars[f'nth_choice_task{idx}_{player.round_number}'] = {
             'question_id': current_question['question_id'],
             'round': player.round_number,
             'choice': choice,
@@ -396,16 +388,23 @@ class Wait_Decision(WaitPage):
 
     @staticmethod
     def after_all_players_arrive(group):
+        idx = group.get_players()[0].participant.vars['current_task_index']
         decisions = [p.participant.vars.get(f'decision_making_round_{p.round_number}') for p in group.get_players()]
         if all(d == decisions[0] for d in decisions):
+            true_false = group.get_players()[0].participant.vars.get(f'nth_choice_task{idx}_{group.get_players()[0].round_number}').get('true_false')
             for p in group.get_players():
-                p.participant.vars[f'is_finished_round_{p.round_number}'] = True
-                # print(f"[DEBUG{p.round_number}] {p.participant.vars[f'is_finished_round_{p.round_number}']}")
+                p.participant.vars[f'task{idx}_finished'] = p.round_number
+                p.participant.vars[f'task{idx}_group_choice'] = true_false
+            if idx + 1 < len(group.get_players()[0].participant.vars['all_tasks']):
+                for p in group.get_players():
+                    p.participant.vars[f'is_finished_round_{p.round_number}'] = True
+            if idx + 1 == len(group.get_players()[0].participant.vars['all_tasks']):
+                for p in group.get_players():
+                    p.participant.vars[f'is_finished_round_{p.round_number}'] = True
         else:
-            group.loop_count += 1  # 一致しなかったのでループ回数をカウント
+            group.loop_count += 1
             for p in group.get_players():
                 p.participant.vars[f'is_finished_round_{p.round_number}'] = False
-                # print(f"[DEBUG{p.round_number}] {p.participant.vars[f'is_finished_round_{p.round_number}']}")
 
 
 class Unanimity(Page):
@@ -434,28 +433,17 @@ class Results(Page):
 
     @staticmethod
     def vars_for_template(player):
-        task_choices = []
-        for task_index, task in enumerate(C.TASKS_INFO):
-            kind = task['kind']
-            start_index = task_index * C.NUM_PAIRS
-            end_index = start_index + C.NUM_PAIRS
-            correct_count = sum(
-                1 for idx in range(start_index, end_index)
-                if player.participant.vars.get(f'choice_{idx}', {}).get('true_false') == 1
-            )
-            total_questions = C.NUM_PAIRS
-            task_choices.append({
-                'kind': kind,
-                'correct_count': correct_count,
-                'total_questions': total_questions,
-                'candidates': task['candidate']
-            })
-        total_questions = len(C.TASKS_INFO) * C.NUM_PAIRS
-        total_correct_count = sum(task['correct_count'] for task in task_choices)
-        reward = 200 + 10*total_correct_count
+        task_correct_count = []
+        for idx in range(len(player.participant.vars['all_tasks'])):
+            true_false = player.participant.vars.get(f'task{idx}_group_choice')
+            if true_false is None:
+                true_false = 0
+            task_correct_count.append(true_false)
+        correct_count = sum(task_correct_count)
+        reward = 200 + 10*correct_count
         return {
-            'total_questions': len(C.TASKS_INFO) * C.NUM_PAIRS,
-            'total_correct_count': total_correct_count,
+            'total_questions': len(player.participant.vars['all_tasks']),
+            'correct_count': correct_count,
             'reward': reward
         }
 
@@ -485,36 +473,65 @@ page_sequence = [
 def custom_export(players):
     yield [
         'participant_code', 'session_code', 'time_started_utc',
-        'ID',
-        'gender', 'age',
-        'order_id','questionID', 'task_id', 'kind', 'subquestionID',
-        'option1', 'option2', 'rank1', 'rank2',
+        'groupID', 'individualID', 'gender', 'age',
+        'order_id','questionID', 'task_id', 'kind', 'subquestionID', 'option1', 'option2', 'rank1', 'rank2',
         'time_step', 'choice', 'true_false', 'confidence', 'time_spent'
     ]
-    for player in players:
-        if player.round_number == C.NUM_ROUNDS:
-            for idx, task in enumerate(player.participant.vars['all_tasks']):
-                choice_data = player.participant.vars.get(f'choice_{idx}', {})
-                elapsed_time = player.participant.vars.get(f'elapsed_time_{idx}', {})
-                yield [
-                    player.participant.code,
-                    player.session.code,
-                    player.participant.time_started_utc,
-                    player.participant.vars.get('group_id_number'),
-                    player.participant.vars.get('individual_id_number'),
-                    player.participant.vars.get('gender'),
-                    player.participant.vars.get('age'),
-                    task['order_id'],
-                    task['question_id'],
-                    task['task_id'],
-                    task['kind'],
-                    task['subquestion_id'],
-                    task['option1'],
-                    task['option2'],
-                    task['rank1'],
-                    task['rank2'],
-                    choice_data.get('choice'),
-                    choice_data.get('true_false'),
-                    choice_data.get('confidence'),
-                    elapsed_time
-                ]
+    for p in players:
+        idx = p.participant.vars['current_task_index']
+        current_question = p.participant.vars['all_tasks'][idx]
+        if p.participant.vars.get(f'first_choice_task{idx}_{p.round_number}'):
+            choice_data = p.participant.vars.get(f'first_choice_task{idx}_{p.round_number}', {})
+            time_step = 0
+            yield [
+                p.participant.code,
+                p.session.code,
+                p.participant.time_started_utc,
+                p.participant.vars.get('group_id_number'),
+                p.participant.vars.get('individual_id_number'),
+                p.participant.vars.get('gender'),
+                p.participant.vars.get('age'),
+                current_question['order_id'],
+                current_question['question_id'],
+                current_question['task_id'],
+                current_question['kind'],
+                current_question['subquestion_id'],
+                current_question['option1'],
+                current_question['option2'],
+                current_question['rank1'],
+                current_question['rank2'],
+                time_step,
+                choice_data.get('choice'),
+                choice_data.get('true_false'),
+                choice_data.get('confidence'),
+                choice_data.get('time_spent')
+            ]
+        elif p.participant.vars.get(f'nth_choice_task{idx}_{p.round_number}'):
+            choice_data = p.participant.vars.get(f'nth_choice_task{idx}_{p.round_number}', {})
+            if idx == 0:
+                time_step = p.round_number
+            else:
+                time_step = p.round_number - p.participant.vars.get(f'task{idx - 1}_finished') - 1
+            yield [
+                p.participant.code,
+                p.session.code,
+                p.participant.time_started_utc,
+                p.participant.vars.get('group_id_number'),
+                p.participant.vars.get('individual_id_number'),
+                p.participant.vars.get('gender'),
+                p.participant.vars.get('age'),
+                current_question['order_id'],
+                current_question['question_id'],
+                current_question['task_id'],
+                current_question['kind'],
+                current_question['subquestion_id'],
+                current_question['option1'],
+                current_question['option2'],
+                current_question['rank1'],
+                current_question['rank2'],
+                time_step,
+                choice_data.get('choice'),
+                choice_data.get('true_false'),
+                choice_data.get('confidence'),
+                choice_data.get('time_spent')
+            ]
