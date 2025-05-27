@@ -33,7 +33,7 @@ class Group(BaseGroup):
 class Player(BasePlayer):
     typing_test = models.LongStringField(
         initial = None,
-        verbose_name = 'この実験ではキーボードで文字を入力しながら行います。あなたがキーボードを使えるかどうか確認するために、「2025北海道大学」と入力してください(2025は半角)。',
+        verbose_name = 'この実験ではキーボードで文字を入力しながら行います。あなたがキーボードを使えるかどうか確認するために、「2025北海道大学」と入力してください（2025は半角）。',
     )
     group_id_number = models.IntegerField(
         initial = None,
@@ -250,7 +250,7 @@ class Wait_Chat(WaitPage):
 
 class Chat(Page):
     form_model = 'player'
-    timeout_seconds = 60
+    timeout_seconds = 300
 
     @staticmethod
     def is_displayed(player):

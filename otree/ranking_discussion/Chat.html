@@ -117,6 +117,23 @@
 {{ block content }}
 <input type="hidden" id="my-nickname" value="{{ nickname }}">
 
+<div class="modal fade bd-example-modal-sm" id="myModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-element">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+                    <path
+                    d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+                </svg>
+                <div class="modal-value">もっと活発に議論してみましょう！</div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div style="background: #34b0e47d; border: 1px solid #34b0e47d; padding-left: 30px;">
     <b>問題</b>：{{ question }}はどちらですか？
 </div>
@@ -131,7 +148,7 @@
                     <li>
                         {{ d.nickname }}
                         {% if d.nickname == nickname %}
-                            （あなた）
+                            （自分）
                         {% endif %}
                     </li>
                     　
@@ -149,7 +166,7 @@
                     <li>
                         {{ d.nickname }}
                         {% if d.nickname == nickname %}
-                            （あなた）
+                            （自分）
                         {% endif %}
                     </li>
                     　
@@ -161,8 +178,11 @@
 
 <br>
 
+話し合いは、以下のチャット機能を利用してください。
+{{ chat nickname=nickname}}
+
 {% if chat_history %}
-過去の会話の内容
+過去の話し合いは以下を参照してください。
 <div class="otree-chat__messages">
     {% for msg in chat_history %}
         <div>
@@ -172,9 +192,6 @@
     {% endfor %}
 </div>
 {% endif %}
-
-話し合いは、以下のチャット機能を利用してください。
-{{ chat nickname=nickname}}
 
 {{ endblock }}
 
@@ -196,6 +213,37 @@
             e.preventDefault();
         }
     });
+
+    let id;
+    let isSet = false;
+    window.addEventListener('DOMContentLoaded', () => {
+        id_patrol = setInterval(patrol, 2000);
+    });
+
+    var patrol = function () {
+        let text = document.getElementsByClassName("otree-chat__input")[0].value;
+        console.log(isSet);
+        if (text === "" && isSet === false) {
+            id_announce = setTimeout(announce, 60000);
+            isSet = true;
+        } else if (text !== "") {
+            clearTimeout(id_announce);
+            isSet = false;
+        }
+    }
+
+    var announce = function () {
+        $('#myModal').modal('show')
+        $('#myModal').on('hidden.bs.modal', function (e) {
+            isSet = false;
+        });
+    }
+
+    let x = document.getElementsByClassName("bi-x")[0];
+    x.addEventListener("click", () => {
+        $('#myModal').modal('hide')
+        isSet = false;
+        });
 </script>
 
 {{ endblock }}
