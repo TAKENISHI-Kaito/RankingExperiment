@@ -250,7 +250,7 @@ class Wait_Chat(WaitPage):
 
 class Chat(Page):
     form_model = 'player'
-    timeout_seconds = 300
+    # timeout_seconds = 300
 
     @staticmethod
     def is_displayed(player):
@@ -265,6 +265,7 @@ class Chat(Page):
 
     @staticmethod
     def live_method(player, data):
+        # liveSendの処理
         idx = player.participant.vars['current_task_index']
         nickname = player.participant.vars['nickname_map'][idx]
         message = data['message']
@@ -277,7 +278,17 @@ class Chat(Page):
             if f'chat_history_{idx}' not in p.participant.vars:
                 p.participant.vars[f'chat_history_{idx}'] = []
             p.participant.vars[f'chat_history_{idx}'].append(timestamped_message)
-        return {0: timestamped_message}
+
+        # liveRecvの処理
+        if player.round_number == 1:
+            chat_history = None
+        else:
+            prev_players = player.in_previous_rounds()
+            print(f'prev_players: {prev_players}')
+            prev_player = prev_players[0]
+            chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
+        print(f'チャット履歴：\n{chat_history}')
+        return {0: chat_history}
 
 
     @staticmethod
@@ -295,20 +306,20 @@ class Chat(Page):
             }
             for p in player.group.get_players()
         ], key=lambda d: int(d['nickname'].replace('番さん', '')))
-        if player.round_number == 1:
-            chat_history = None
-        else:
-            prev_players = player.in_previous_rounds()
-            prev_player = prev_players[0]
-            chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
-            # print(f'chat_history: {chat_history}')
+        # if player.round_number == 1:
+        #     chat_history = None
+        # else:
+        #     prev_players = player.in_previous_rounds()
+        #     prev_player = prev_players[0]
+        #     chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
+        #     print(f'chat_history: {chat_history}')
         return {
             'nickname': nickname,
             'decisions': decisions,
             'question': current_question['question'],
             'option1': current_question['option1'],
             'option2': current_question['option2'],
-            'chat_history': chat_history
+            # 'chat_history': chat_history
         }
 
 

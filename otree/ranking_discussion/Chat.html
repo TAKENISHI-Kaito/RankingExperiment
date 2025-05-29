@@ -181,22 +181,24 @@
 話し合いは、以下のチャット機能を利用してください。
 {{ chat nickname=nickname}}
 
-{% if chat_history %}
-過去の話し合いは以下を参照してください。
-<div class="otree-chat__messages">
-    {% for msg in chat_history %}
-        <div>
-            <span class="otree-chat__nickname">{{ msg.nickname }}{% if msg.nickname == nickname %}（あなた）{% endif %}</span><br>
-            <span class="otree-chat__body">{{ msg.message }}</span>
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
-
 {{ endblock }}
 
 {{ block scripts }}
 <script>
+    function liveRecv(data){
+        console.log(data.length);
+        for (let i = 0; i < data.length; i++){
+            console.log(data[i]['nickname']);
+            document.getElementsByClassName('otree-chat__nickname')[i].innerText = data[i]['nickname'];
+            console.log(data[i]['message']);
+            document.getElementsByClassName('otree-chat__body')[i].innerText = data[i]['message'];
+        };
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        liveRecv(data)
+    });
+
     function sendChat() {
         // const nickname = document.getElementsByClassName('otree-chat__nickname')[0].innerText;
         const nickname = document.getElementById('my-nickname').value;
