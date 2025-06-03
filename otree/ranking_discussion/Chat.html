@@ -185,18 +185,39 @@
 
 {{ block scripts }}
 <script>
-    function liveRecv(data){
-        console.log(data.length);
-        for (let i = 0; i < data.length; i++){
-            console.log(data[i]['nickname']);
-            document.getElementsByClassName('otree-chat__nickname')[i].innerText = data[i]['nickname'];
-            console.log(data[i]['message']);
-            document.getElementsByClassName('otree-chat__body')[i].innerText = data[i]['message'];
-        };
+    const parent = document.getElementsByClassName('otree-chat__messages')[0];
+
+    const new_msg_div = (nickname, body) => {
+        const msg_div = document.createElement('div');
+        msg_div.classList.add('otree-chat__msg');
+        let span_nickname = document.createElement('span');
+        if (nickname == document.getElementById('my-nickname').value) {
+            span_nickname.classList.add('otree-chat__nickname');
+            span_nickname.innerText = nickname + '（自分）';
+        } else {
+            span_nickname.classList.add('otree-chat__nickname');
+            span_nickname.innerText = nickname;
+        }
+        let span_body = document.createElement('span');
+        span_body.classList.add('otree-chat__body');
+        span_body.innerText = body;
+        msg_div.append(span_nickname, span_body);
+        return msg_div;
     }
 
+    function liveRecv(data){
+        console.log(data);
+        console.log(data.length);
+        for (let i = 0; i < data.length; i++) {
+            let msg_div = new_msg_div(data[i]['nickname'], data[i]['message']);
+            parent.append(msg_div);
+        }
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
-        liveRecv(data)
+        console.log('pocha1');
+        liveSend({});
+        console.log('pocha2');
     });
 
     function sendChat() {

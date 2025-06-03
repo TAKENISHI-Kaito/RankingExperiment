@@ -33,7 +33,7 @@ class Group(BaseGroup):
 class Player(BasePlayer):
     typing_test = models.LongStringField(
         initial = None,
-        verbose_name = 'この実験ではキーボードで文字を入力しながら行います。あなたがキーボードを使えるかどうか確認するために、「2025北海道大学」と入力してください（2025は半角）。',
+        verbose_name = 'この実験ではキーボードから文章を入力します。待ち時間の間に、半角英数字、全角日本語が入力できることを確認しておいてください。',
     )
     group_id_number = models.IntegerField(
         initial = None,
@@ -230,14 +230,14 @@ class First_Make_Decision(Page):
             true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
         confidence = player.first_confidence
         player.participant.vars[f'decision_making_round_{player.round_number}'] = player.first_decision_making
-        player.participant.vars[f'choice_{idx}_{player.round_number}'] = {
-            'question_id': current_question['question_id'],
-            'round': player.round_number,
+        player.participant.vars[f'choice_task{idx}'] = []
+        player.participant.vars[f'choice_task{idx}'].append({
+            'round': 0,
             'choice': choice,
             'true_false': true_false,
             'confidence': confidence,
             'time_spent': elapsed_time
-        }
+        })
 
 
 class Wait_Chat(WaitPage):
@@ -265,31 +265,33 @@ class Chat(Page):
 
     @staticmethod
     def live_method(player, data):
-        # liveSendの処理
-        idx = player.participant.vars['current_task_index']
-        nickname = player.participant.vars['nickname_map'][idx]
-        message = data['message']
-        timestamped_message = {
-            'nickname': nickname,
-            'id_in_group': player.id_in_group,
-            'message': message
-        }
-        for p in player.group.get_players():
-            if f'chat_history_{idx}' not in p.participant.vars:
-                p.participant.vars[f'chat_history_{idx}'] = []
-            p.participant.vars[f'chat_history_{idx}'].append(timestamped_message)
-
-        # liveRecvの処理
-        if player.round_number == 1:
-            chat_history = None
+        if "nickname" in data.keys():
+            # liveSendの処理
+            idx = player.participant.vars['current_task_index']
+            nickname = player.participant.vars['nickname_map'][idx]
+            message = data['message']
+            timestamped_message = {
+                'nickname': nickname,
+                'id_in_group': player.id_in_group,
+                'message': message
+            }
+            for p in player.group.get_players():
+                if f'chat_history_{idx}' not in p.participant.vars:
+                    p.participant.vars[f'chat_history_{idx}'] = []
+                p.participant.vars[f'chat_history_{idx}'].append(timestamped_message)
         else:
-            prev_players = player.in_previous_rounds()
-            print(f'prev_players: {prev_players}')
-            prev_player = prev_players[0]
-            chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
-        print(f'チャット履歴：\n{chat_history}')
-        return {0: chat_history}
-
+            # liveRecvの処理
+            if player.round_number == 1:
+                chat_history = None
+            else:
+                idx = player.participant.vars['current_task_index']
+                prev_players = player.in_previous_rounds()
+                prev_player = prev_players[0]
+                chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
+            idx = player.participant.vars['current_task_index']
+            nickname = player.participant.vars['nickname_map'][idx]
+            print(f'チャット履歴：\n{nickname}\n{chat_history}')
+            return {0: chat_history}
 
     @staticmethod
     def vars_for_template(player):
@@ -375,14 +377,14 @@ class Nth_Make_Decision(Page):
             true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
         confidence = player.nth_confidence
         player.participant.vars[f'decision_making_round_{player.round_number}'] = player.nth_decision_making
-        player.participant.vars[f'nth_choice_task{idx}_{player.round_number}'] = {
-            'question_id': current_question['question_id'],
-            'round': player.round_number,
+        time_step = player.round_number if idx == 0 else player.round_number - player.participant.vars.get(f'task{idx - 1}_finished') - 1
+        player.participant.vars[f'choice_task{idx}'].append({
+            'round': time_step,
             'choice': choice,
             'true_false': true_false,
             'confidence': confidence,
             'time_spent': elapsed_time
-        }
+        })
 
 
 class Wait_Decision(WaitPage):
@@ -489,60 +491,30 @@ def custom_export(players):
         'time_step', 'choice', 'true_false', 'confidence', 'time_spent'
     ]
     for p in players:
-        idx = p.participant.vars['current_task_index']
-        current_question = p.participant.vars['all_tasks'][idx]
-        if p.participant.vars.get(f'first_choice_task{idx}_{p.round_number}'):
-            choice_data = p.participant.vars.get(f'first_choice_task{idx}_{p.round_number}', {})
-            time_step = 0
-            yield [
-                p.participant.code,
-                p.session.code,
-                p.participant.time_started_utc,
-                p.participant.vars.get('group_id_number'),
-                p.participant.vars.get('individual_id_number'),
-                p.participant.vars.get('gender'),
-                p.participant.vars.get('age'),
-                current_question['order_id'],
-                current_question['question_id'],
-                current_question['task_id'],
-                current_question['kind'],
-                current_question['subquestion_id'],
-                current_question['option1'],
-                current_question['option2'],
-                current_question['rank1'],
-                current_question['rank2'],
-                time_step,
-                choice_data.get('choice'),
-                choice_data.get('true_false'),
-                choice_data.get('confidence'),
-                choice_data.get('time_spent')
-            ]
-        elif p.participant.vars.get(f'nth_choice_task{idx}_{p.round_number}'):
-            choice_data = p.participant.vars.get(f'nth_choice_task{idx}_{p.round_number}', {})
-            if idx == 0:
-                time_step = p.round_number
-            else:
-                time_step = p.round_number - p.participant.vars.get(f'task{idx - 1}_finished') - 1
-            yield [
-                p.participant.code,
-                p.session.code,
-                p.participant.time_started_utc,
-                p.participant.vars.get('group_id_number'),
-                p.participant.vars.get('individual_id_number'),
-                p.participant.vars.get('gender'),
-                p.participant.vars.get('age'),
-                current_question['order_id'],
-                current_question['question_id'],
-                current_question['task_id'],
-                current_question['kind'],
-                current_question['subquestion_id'],
-                current_question['option1'],
-                current_question['option2'],
-                current_question['rank1'],
-                current_question['rank2'],
-                time_step,
-                choice_data.get('choice'),
-                choice_data.get('true_false'),
-                choice_data.get('confidence'),
-                choice_data.get('time_spent')
-            ]
+        if player.round_number == C.NUM_ROUNDS:
+            for idx, task in enumerate(p.participant.vars['all_tasks']):
+                choice_list = player.participant.vars.get(f'choice_task{idx}, []')
+                for choice_data in choice_list:
+                    yield [
+                        p.participant.code,
+                        p.session.code,
+                        p.participant.time_started_utc,
+                        p.participant.vars.get('group_id_number'),
+                        p.participant.vars.get('individual_id_number'),
+                        p.participant.vars.get('gender'),
+                        p.participant.vars.get('age'),
+                        task['order_id'],
+                        task['question_id'],
+                        task['task_id'],
+                        task['kind'],
+                        task['subquestion_id'],
+                        task['option1'],
+                        task['option2'],
+                        task['rank1'],
+                        task['rank2'],
+                        choice_data.get('round'),
+                        choice_data.get('choice'),
+                        choice_data.get('true_false'),
+                        choice_data.get('confidence'),
+                        choice_data.get('time_spent')
+                    ]
