@@ -61,6 +61,10 @@
         background-color: #34b0e47d;
     }
 
+    .otree-timer {
+        display: none;
+    }
+
     .btn {
         height: 38px;
         font-size: 17px !important;
@@ -125,7 +129,7 @@
                     <path
                     d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
                 </svg>
-                <div class="modal-value">もっと活発に議論してみましょう！</div>
+                <div class="modal-value">もっと活発に話し合いましょう！</div>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
                     <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
                 </svg>
@@ -138,104 +142,78 @@
     <b>問題</b>：{{ question }}はどちらですか？
 </div>
 <div style="border: 1px solid #34b0e47d; font-size: 100%; padding: 20px;">
+    <p>あなたは <b>{{ decision }}</b> を選択しました。</p>
+    <p>あなたを含めた5人の意見は以下のとおりです。</p>
     <div style="background:#FFF3CD; border: 1px solid 	#FFF3CD; padding-left: 10px;">
-        <b>{{ option1 }}</b>を選択した人
-    </div>
-    <div style="border: 1px solid #FFF3CD; font-size: 100%; padding: 20px;">
-        <ul>
-            {% for d in decisions %}
-                {% if d.decision == option1 %}
-                    <li>
-                        {{ d.nickname }}
-                        {% if d.nickname == nickname %}
-                            （自分）
-                        {% endif %}
-                    </li>
-                    　
-                {% endif %}
-            {% endfor %}
-        </ul>
+        <b>{{ option1 }}</b>を選択した人：{{ count_option1 }}人
     </div>
     <div style="background: #FFF3CD; border: 1px solid #FFF3CD; padding-left: 10px;">
-        <b>{{ option2 }}</b>を選択した人
-    </div>
-    <div style="border: 1px solid #FFF3CD; font-size: 100%; padding: 20px;">
-        <ul>
-            {% for d in decisions %}
-                {% if d.decision == option2 %}
-                    <li>
-                        {{ d.nickname }}
-                        {% if d.nickname == nickname %}
-                            （自分）
-                        {% endif %}
-                    </li>
-                    　
-                {% endif %}
-            {% endfor %}
-        </ul>
+        <b>{{ option2 }}</b>を選択した人：{{ count_option2 }}人
     </div>
 </div>
 
 <br>
 
-話し合いは、以下のチャット機能を利用してください。
+<p>話し合いは、以下のチャット機能を利用してください。</p>
+<p>あなたの名前は <b>{{ nickname }}</b> です。</p>
 {{ chat nickname=nickname}}
 
 {{ endblock }}
 
 {{ block scripts }}
 <script>
-    const parent = document.getElementsByClassName('otree-chat__messages')[0];
+    // 以下はチャット履歴を復元するためのコード（今回は実装していないが、今後のために記録）
+    // const parent = document.getElementsByClassName('otree-chat__messages')[0];
 
-    const new_msg_div = (nickname, body) => {
-        const msg_div = document.createElement('div');
-        msg_div.classList.add('otree-chat__msg');
-        let span_nickname = document.createElement('span');
-        if (nickname == document.getElementById('my-nickname').value) {
-            span_nickname.classList.add('otree-chat__nickname');
-            span_nickname.innerText = nickname + '（自分）';
-        } else {
-            span_nickname.classList.add('otree-chat__nickname');
-            span_nickname.innerText = nickname;
-        }
-        let span_body = document.createElement('span');
-        span_body.classList.add('otree-chat__body');
-        span_body.innerText = body;
-        msg_div.append(span_nickname, span_body);
-        return msg_div;
-    }
+    // const new_msg_div = (nickname, body) => {
+    //     const msg_div = document.createElement('div');
+    //     msg_div.classList.add('otree-chat__msg');
+    //     let span_nickname = document.createElement('span');
+    //     if (nickname == document.getElementById('my-nickname').value) {
+    //         span_nickname.classList.add('otree-chat__nickname');
+    //         span_nickname.innerText = nickname + '（自分）';
+    //     } else {
+    //         span_nickname.classList.add('otree-chat__nickname');
+    //         span_nickname.innerText = nickname;
+    //     }
+    //     let span_body = document.createElement('span');
+    //     span_body.classList.add('otree-chat__body');
+    //     span_body.innerText = body;
+    //     msg_div.append(span_nickname, span_body);
+    //     return msg_div;
+    // }
 
-    function liveRecv(data){
-        console.log(data);
-        console.log(data.length);
-        for (let i = 0; i < data.length; i++) {
-            let msg_div = new_msg_div(data[i]['nickname'], data[i]['message']);
-            parent.append(msg_div);
-        }
-    };
+    // function liveRecv(data){
+    //     console.log(data);
+    //     console.log(data.length);
+    //     for (let i = 0; i < data.length; i++) {
+    //         let msg_div = new_msg_div(data[i]['nickname'], data[i]['message']);
+    //         parent.append(msg_div);
+    //     }
+    // };
 
-    window.addEventListener('DOMContentLoaded', () => {
-        console.log('pocha1');
-        liveSend({});
-        console.log('pocha2');
-    });
+    // window.addEventListener('DOMContentLoaded', () => {
+    //     // console.log('pocha1');
+    //     liveSend({});
+    //     // console.log('pocha2');
+    // });
 
-    function sendChat() {
-        // const nickname = document.getElementsByClassName('otree-chat__nickname')[0].innerText;
-        const nickname = document.getElementById('my-nickname').value;
-        const message = document.getElementsByClassName('otree-chat__input')[0].value;
-        liveSend({'nickname': nickname, 'message': message});
-    }
+    // function sendChat() {
+    //     // const nickname = document.getElementsByClassName('otree-chat__nickname')[0].innerText;
+    //     const nickname = document.getElementById('my-nickname').value;
+    //     const message = document.getElementsByClassName('otree-chat__input')[0].value;
+    //     liveSend({'nickname': nickname, 'message': message});
+    // }
 
-    const button = document.getElementsByClassName('otree-chat__btn-send')[0];
-    button.addEventListener('click', sendChat, false);
+    // const button = document.getElementsByClassName('otree-chat__btn-send')[0];
+    // button.addEventListener('click', sendChat, false);
 
-    const input = document.getElementsByClassName('otree-chat__input')[0];
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-        }
-    });
+    // const input = document.getElementsByClassName('otree-chat__input')[0];
+    // input.addEventListener('keydown', function (e) {
+    //     if (e.key === 'Enter') {
+    //         e.preventDefault();
+    //     }
+    // });
 
     let id;
     let isSet = false;

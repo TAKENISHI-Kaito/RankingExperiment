@@ -166,7 +166,7 @@ class Question(Page):
     def is_displayed(player):
         prev = player.round_number - 1 if player.round_number != 1 else player.round_number
         idx = player.participant.vars['current_task_index']
-        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx + 1 != len(group.get_players()[0].participant.vars['all_tasks']))
+        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx < len(player.participant.vars['all_tasks']))
 
     @staticmethod
     def vars_for_template(player):
@@ -191,7 +191,7 @@ class First_Make_Decision(Page):
     def is_displayed(player):
         prev = player.round_number - 1 if player.round_number != 1 else player.round_number
         idx = player.participant.vars['current_task_index']
-        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx + 1 != len(group.get_players()[0].participant.vars['all_tasks']))
+        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx < len(player.participant.vars['all_tasks']))
 
     @staticmethod
     def vars_for_template(player):
@@ -245,12 +245,12 @@ class Wait_Chat(WaitPage):
     def is_displayed(player):
         prev = player.round_number - 1 if player.round_number != 1 else player.round_number
         idx = player.participant.vars['current_task_index']
-        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx + 1 != len(group.get_players()[0].participant.vars['all_tasks']))
+        return player.round_number == 1 or (player.participant.vars.get(f'is_finished_round_{prev}') is True and idx < len(player.participant.vars['all_tasks']))
 
 
 class Chat(Page):
     form_model = 'player'
-    # timeout_seconds = 300
+    timeout_seconds = 120
 
     @staticmethod
     def is_displayed(player):
@@ -263,65 +263,56 @@ class Chat(Page):
         else:
             return False
 
-    @staticmethod
-    def live_method(player, data):
-        if "nickname" in data.keys():
-            # liveSendの処理
-            idx = player.participant.vars['current_task_index']
-            nickname = player.participant.vars['nickname_map'][idx]
-            message = data['message']
-            timestamped_message = {
-                'nickname': nickname,
-                'id_in_group': player.id_in_group,
-                'message': message
-            }
-            for p in player.group.get_players():
-                if f'chat_history_{idx}' not in p.participant.vars:
-                    p.participant.vars[f'chat_history_{idx}'] = []
-                p.participant.vars[f'chat_history_{idx}'].append(timestamped_message)
-        else:
-            # liveRecvの処理
-            if player.round_number == 1:
-                chat_history = None
-            else:
-                idx = player.participant.vars['current_task_index']
-                prev_players = player.in_previous_rounds()
-                prev_player = prev_players[0]
-                chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
-            idx = player.participant.vars['current_task_index']
-            nickname = player.participant.vars['nickname_map'][idx]
-            print(f'チャット履歴：\n{nickname}\n{chat_history}')
-            return {0: chat_history}
+    # 以下はチャット履歴を復元するためのコード（今回は実装していないが、今後のために記録）
+    # @staticmethod
+    # def live_method(player, data):
+    #     if "nickname" in data.keys():
+    #         # liveSendの処理
+    #         idx = player.participant.vars['current_task_index']
+    #         nickname = player.participant.vars['nickname_map'][idx]
+    #         message = data['message']
+    #         timestamped_message = {
+    #             'nickname': nickname,
+    #             'id_in_group': player.id_in_group,
+    #             'message': message
+    #         }
+    #         for p in player.group.get_players():
+    #             if f'chat_history_{idx}' not in p.participant.vars:
+    #                 p.participant.vars[f'chat_history_{idx}'] = []
+    #             p.participant.vars[f'chat_history_{idx}'].append(timestamped_message)
+    #     else:
+    #         # liveRecvの処理
+    #         if player.round_number == 1:
+    #             chat_history = None
+    #         else:
+    #             idx = player.participant.vars['current_task_index']
+    #             prev_players = player.in_previous_rounds()
+    #             prev_player = prev_players[0]
+    #             chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
+    #         idx = player.participant.vars['current_task_index']
+    #         nickname = player.participant.vars['nickname_map'][idx]
+    #         print(f'チャット履歴：\n{nickname}\n{chat_history}')
+    #         return {0: chat_history}
 
     @staticmethod
     def vars_for_template(player):
         prev_round = player.round_number - 1 if player.round_number != 1 else player.round_number
-        if player.round_number == 1 or player.participant.vars.get(f'is_finished_round_{prev_round}') is True:
-            decision = player.participant.vars.get(f'decision_making_round_{prev_round}')
+        decision = player.participant.vars.get(f'decision_making_round_{prev_round}')
         idx = player.participant.vars['current_task_index']
         current_question = player.participant.vars['all_tasks'][idx]
         nickname = player.participant.vars['nickname_map'][idx]
-        decisions = sorted([
-            {
-                'nickname': p.participant.vars['nickname_map'][idx],
-                'decision': p.participant.vars.get(f'decision_making_round_{prev_round}')
-            }
-            for p in player.group.get_players()
-        ], key=lambda d: int(d['nickname'].replace('番さん', '')))
-        # if player.round_number == 1:
-        #     chat_history = None
-        # else:
-        #     prev_players = player.in_previous_rounds()
-        #     prev_player = prev_players[0]
-        #     chat_history = prev_player.participant.vars.get(f'chat_history_{idx}')
-        #     print(f'chat_history: {chat_history}')
+        decisions = [p.participant.vars.get(f'decision_making_round_{prev_round}') for p in player.group.get_players()]
+        count_option1 = sum(1 for d in decisions if d == current_question['option1'])
+        count_option2 = sum(1 for d in decisions if d == current_question['option2'])
         return {
             'nickname': nickname,
+            'decision': decision,
             'decisions': decisions,
             'question': current_question['question'],
             'option1': current_question['option1'],
             'option2': current_question['option2'],
-            # 'chat_history': chat_history
+            'count_option1': count_option1,
+            'count_option2': count_option2
         }
 
 
@@ -404,7 +395,7 @@ class Wait_Decision(WaitPage):
         idx = group.get_players()[0].participant.vars['current_task_index']
         decisions = [p.participant.vars.get(f'decision_making_round_{p.round_number}') for p in group.get_players()]
         if all(d == decisions[0] for d in decisions):
-            true_false = group.get_players()[0].participant.vars.get(f'nth_choice_task{idx}_{group.get_players()[0].round_number}').get('true_false')
+            true_false = group.get_players()[0].participant.vars.get(f'choice_task{idx}')[-1]['true_false']
             for p in group.get_players():
                 p.participant.vars[f'task{idx}_finished'] = p.round_number
                 p.participant.vars[f'task{idx}_group_choice'] = true_false
@@ -442,7 +433,7 @@ class Unanimity(Page):
 class Results(Page):
     @staticmethod
     def is_displayed(player):
-        return player.round_number == C.NUM_ROUNDS
+        return player.participant.vars['current_task_index'] == len(player.participant.vars['all_tasks'])
 
     @staticmethod
     def vars_for_template(player):
@@ -464,7 +455,7 @@ class Results(Page):
 class Finish(Page):
     @staticmethod
     def is_displayed(player):
-        return player.round_number == C.NUM_ROUNDS
+        return player.participant.vars['current_task_index'] == len(player.participant.vars['all_tasks'])
 
 
 page_sequence = [
@@ -491,9 +482,9 @@ def custom_export(players):
         'time_step', 'choice', 'true_false', 'confidence', 'time_spent'
     ]
     for p in players:
-        if player.round_number == C.NUM_ROUNDS:
+        if p.round_number == C.NUM_ROUNDS:
             for idx, task in enumerate(p.participant.vars['all_tasks']):
-                choice_list = player.participant.vars.get(f'choice_task{idx}, []')
+                choice_list = p.participant.vars.get(f'choice_task{idx}', [])
                 for choice_data in choice_list:
                     yield [
                         p.participant.code,
