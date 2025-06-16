@@ -19,7 +19,7 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None
     TASKS_INFO = tasks_info
     NUM_PAIRS = 2
-    NUM_ROUNDS = 100
+    NUM_ROUNDS = 1000
     NUM_TASKS = len(TASKS_INFO)
 
 class Subsession(BaseSubsession):
@@ -79,7 +79,9 @@ def creating_session(subsession: Subsession):
                 task_copy = task.copy()
                 paired = list(zip(task_copy['candidate'], task_copy['ranking']))
                 task_questions = []
-                for sub_id, ((opt1, opt2), (r1, r2)) in enumerate(paired, start=1):
+                for sub_id, (opt_pair, rank_pair) in enumerate(paired, start=1):
+                    opt1, opt2 = opt_pair
+                    r1, r2 = rank_pair
                     task_questions.append({
                         'question_id': question_id,
                         'task_id': task_copy['task'],
