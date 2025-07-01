@@ -1,0 +1,39 @@
+{{ block content }}
+<body oncontextmenu="return false;">
+  <link rel="stylesheet" href="{% static 'global/main.css' %}" />
+
+  <style>
+    .tab {
+        display: none;
+    }
+  </style>
+
+  {{ include_sibling 'tabs.html' }}
+
+  <script>
+
+    let activeTab = 0;
+    let tabs = document.getElementsByClassName('tab');
+
+    function showCurrentTabOnly() {
+      for (let i = 0; i < tabs.length; i++) {
+        let tab = tabs[i];
+        if (i === activeTab) {
+          tab.style.display = 'block';
+          tab.scrollIntoView();
+        } else {
+          tab.style.display = 'none';
+        }
+      }
+    }
+
+    showCurrentTabOnly();
+    for (let btn of document.getElementsByClassName('btn-tab')) {
+        btn.onclick = function () {
+            activeTab += parseInt(btn.dataset.offset);
+            showCurrentTabOnly();
+        }
+    }
+  </script>
+</body>
+{{ endblock }}

@@ -6,7 +6,7 @@ import numpy as np
 from otree.api import *
 
 import json
-with open('./ranking_discussion/tasks_info.json') as f:
+with open('./conformity_high_condition/tasks_info.json') as f:
     tasks_info = json.load(f)
 
 doc = """
@@ -15,7 +15,7 @@ Ranking Task Experiment
 rng = np.random.default_rng()
 
 class C(BaseConstants):
-    NAME_IN_URL = 'ranking_discussion'
+    NAME_IN_URL = 'conformity_high_condition'
     PLAYERS_PER_GROUP = None
     TASKS_INFO = tasks_info
     NUM_PAIRS = 2
@@ -53,6 +53,13 @@ class Player(BasePlayer):
         initial = None,
         verbose_name = 'あなたの年齢を教えてください。'
         )
+    prac_decision_making = models.LongStringField()
+    prac_preference = models.CharField(
+        initial = None,
+        choices = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+        verbose_name = 'どのくらい好きですか？',
+        widget = widgets.RadioSelect()
+    )
     first_decision_making = models.LongStringField()
     first_confidence = models.CharField(
         initial = None,
@@ -73,20 +80,21 @@ class Player(BasePlayer):
 def creating_session(subsession: Subsession):
     if subsession.round_number == 1:
         if subsession.session.vars.get('shuffled_tasks_info') is None:
-            question_id = 1
-            original_tasks_info = []
+            question_id = 0
+            practice_task = None
+            non_practice_tasks = []
             for task in C.TASKS_INFO:
-                task_copy = task.copy()
-                paired = list(zip(task_copy['candidate'], task_copy['ranking']))
-                task_questions = []
+                t = task.copy()
+                paired = list(zip(t['candidate'], t['ranking']))
+                questions = []
                 for sub_id, (opt_pair, rank_pair) in enumerate(paired, start=1):
                     opt1, opt2 = opt_pair
                     r1, r2 = rank_pair
-                    task_questions.append({
+                    questions.append({
                         'question_id': question_id,
-                        'task_id': task_copy['task'],
-                        'kind': task_copy['kind'],
-                        'question': task_copy['question'],
+                        'task_id': t['task'],
+                        'kind': t['kind'],
+                        'question': t['question'],
                         'subquestion_id': sub_id,
                         'option1': opt1,
                         'option2': opt2,
@@ -94,12 +102,16 @@ def creating_session(subsession: Subsession):
                         'rank2': r2
                     })
                     question_id += 1
-                task_copy['questions'] = task_questions
-                original_tasks_info.append(task_copy)
-            rng.shuffle(original_tasks_info)
-            for task in original_tasks_info:
+                t['questions'] = questions
+                if t['task'] == 'practice':
+                    practice_task = t
+                else:
+                    non_practice_tasks.append(t)
+            rng.shuffle(non_practice_tasks)
+            for task in non_practice_tasks:
                 rng.shuffle(task['questions'])
-            subsession.session.vars['shuffled_tasks_info'] = original_tasks_info
+            shuffled_tasks_info = [practice_task] + non_practice_tasks
+            subsession.session.vars['shuffled_tasks_info'] = shuffled_tasks_info
         for group in subsession.get_groups():
             players = group.get_players()
             for p in players:
@@ -160,8 +172,10 @@ class Instruction(Page):
     def is_displayed(player):
         return player.round_number == 1
 
+
 class Wait_Instruction(WaitPage):
     pass
+
 
 class Question(Page):
     @staticmethod
@@ -172,12 +186,12 @@ class Question(Page):
 
     @staticmethod
     def vars_for_template(player):
-        task_index = 1
         idx = player.participant.vars['current_task_index']
         current_question = player.participant.vars['all_tasks'][idx]
         current_task = player.participant.vars['all_tasks'][idx]['kind']
         current_task_info = next(task for task in C.TASKS_INFO if task['kind'] == current_task)
         return {
+            'round': player.round_number,
             'question': current_question['question'],
             'option1': current_question['option1'],
             'option2': current_question['option2'],
@@ -201,18 +215,15 @@ class First_Make_Decision(Page):
         idx = player.participant.vars['current_task_index']
         current_question = player.participant.vars['all_tasks'][idx]
         current_kind = current_question['kind']
+        degree_question = 'どのくらい好きですか？' if player.round_number == 1 else 'その判断にどのくらい自信がありますか？'
         return {
-            'idx': idx + 1,
-            'sum_questions': len(player.participant.vars['all_tasks']),
-            'order_id': current_question['order_id'],
-            'question_id': current_question['question_id'],
-            'task_id': current_question['task_id'],
-            'kind': current_question['kind'],
+            'round': player.round_number,
+            'idx': idx,
+            'sum_questions': len(player.participant.vars['all_tasks']) - 1,
             'question': current_question['question'],
-            'subquestion_id': current_question['subquestion_id'],
             'option1': current_question['option1'],
             'option2': current_question['option2'],
-            'confidence_question': 'その判断にどのくらい自信がありますか？',
+            'confidence_question': degree_question,
             'confidence_choices': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
         }
 
@@ -226,10 +237,11 @@ class First_Make_Decision(Page):
         current_question = player.participant.vars['all_tasks'][idx]
         choice = player.first_decision_making
         true_false = None
-        if choice == current_question['option1']:
-            true_false = 1 if current_question['rank1'] < current_question['rank2'] else 0
-        elif choice == current_question['option2']:
-            true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
+        if player.round_number != 1:
+            if choice == current_question['option1']:
+                true_false = 1 if current_question['rank1'] < current_question['rank2'] else 0
+            elif choice == current_question['option2']:
+                true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
         confidence = player.first_confidence
         player.participant.vars[f'decision_making_round_{player.round_number}'] = player.first_decision_making
         player.participant.vars[f'choice_task{idx}'] = []
@@ -257,7 +269,7 @@ class Chat(Page):
     @staticmethod
     def is_displayed(player):
         if not_finished_all_tasks(player):
-            if player.round_number == 1:
+            if player.round_number == 1 or player.round_number == 2:
                 return True
             else:
                 prev_round = player.round_number - 1
@@ -298,7 +310,7 @@ class Chat(Page):
 
     @staticmethod
     def vars_for_template(player):
-        prev_round = player.round_number - 1 if player.round_number != 1 else player.round_number
+        prev_round = player.round_number if player.round_number == 1 or player.round_number == 2 else player.round_number - 1
         decision = player.participant.vars.get(f'decision_making_round_{prev_round}')
         idx = player.participant.vars['current_task_index']
         current_question = player.participant.vars['all_tasks'][idx]
@@ -326,6 +338,8 @@ class Nth_Make_Decision(Page):
     def is_displayed(player):
         if not_finished_all_tasks(player):
             if player.round_number == 1:
+                return False
+            elif player.round_number == 2:
                 return True
             else:
                 prev_round = player.round_number - 1
@@ -341,13 +355,7 @@ class Nth_Make_Decision(Page):
         current_kind = current_question['kind']
         pair_num = sum(1 for q in player.participant.vars['all_tasks'][:idx] if q['kind'] == current_kind) + 1
         return {
-            'pair_num': pair_num,
-            'order_id': current_question['order_id'],
-            'question_id': current_question['question_id'],
-            'task_id': current_question['task_id'],
-            'kind': current_question['kind'],
             'question': current_question['question'],
-            'subquestion_id': current_question['subquestion_id'],
             'option1': current_question['option1'],
             'option2': current_question['option2'],
             'confidence_question': 'その判断にどのくらい自信がありますか？',
@@ -370,7 +378,10 @@ class Nth_Make_Decision(Page):
             true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
         confidence = player.nth_confidence
         player.participant.vars[f'decision_making_round_{player.round_number}'] = player.nth_decision_making
-        time_step = player.round_number if idx == 0 else player.round_number - player.participant.vars.get(f'task{idx - 1}_finished') - 1
+        if player.round_number == 1 or player.round_number == 2:
+            time_step = 1
+        else:
+            time_step = player.round_number - player.participant.vars.get(f'task{idx - 1}_finished') - 1
         player.participant.vars[f'choice_task{idx}'].append({
             'round': time_step,
             'choice': choice,
@@ -385,6 +396,8 @@ class Wait_Decision(WaitPage):
     def is_displayed(player):
         if not_finished_all_tasks(player):
             if player.round_number == 1:
+                return False
+            elif player.round_number == 2:
                 return True
             else:
                 prev_round = player.round_number - 1
@@ -432,6 +445,7 @@ class Unanimity(Page):
         player.participant.vars['current_task_index'] = idx + 1
         player.participant.vars[f'is_finished_round_{player.round_number + 1}'] = False
 
+
 class Results(Page):
     @staticmethod
     def is_displayed(player):
@@ -446,12 +460,27 @@ class Results(Page):
                 true_false = 0
             task_correct_count.append(true_false)
         correct_count = sum(task_correct_count)
-        reward = 200 + 10*correct_count
+        reward = 700 + 50*correct_count
         return {
-            'total_questions': len(player.participant.vars['all_tasks']),
+            'total_questions': len(player.participant.vars['all_tasks']) - 1,
             'correct_count': correct_count,
             'reward': reward
         }
+
+
+class After_Practice(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        idx = player.participant.vars['current_task_index']
+        player.participant.vars['current_task_index'] = idx + 1
+        true_false = player.participant.vars.get(f'choice_task{idx}')[-1]['true_false']
+        player.participant.vars[f'task{idx}_finished'] = player.round_number
+        player.participant.vars[f'task{idx}_group_choice'] = true_false
+        player.participant.vars[f'is_finished_round_{player.round_number}'] = True
 
 
 class Finish(Page):
@@ -472,14 +501,16 @@ page_sequence = [
     Nth_Make_Decision,
     Wait_Decision,
     Unanimity,
-    Results, Finish
+    Results,
+    After_Practice,
+    Finish
 ]
 
 
 def custom_export(players):
     yield [
         'participant_code', 'session_code', 'time_started_utc',
-        'groupID', 'individualID', 'gender', 'age',
+        'condition','groupID', 'individualID', 'gender', 'age',
         'order_id','questionID', 'task_id', 'kind', 'subquestionID', 'option1', 'option2', 'rank1', 'rank2',
         'time_step', 'choice', 'true_false', 'confidence', 'time_spent'
     ]
@@ -492,6 +523,7 @@ def custom_export(players):
                         p.participant.code,
                         p.session.code,
                         p.participant.time_started_utc,
+                        1,
                         p.participant.vars.get('group_id_number'),
                         p.participant.vars.get('individual_id_number'),
                         p.participant.vars.get('gender'),

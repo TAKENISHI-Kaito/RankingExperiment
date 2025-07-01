@@ -1,0 +1,20 @@
+{{ block title }}
+参加者の情報
+{{ endblock }}
+{{ block content }}
+<body oncontextmenu="return false;">
+    <link rel="stylesheet" href="{% static 'global/main.css' %}" />
+
+    <div>
+        <p>
+            以下の質問に回答してください。<br>
+        </p>
+    </div>
+
+    <div style="background-color: #e6e6e6;">
+        {{ formfields }}
+    </div>
+
+        <button type="submit">次へ</button>
+</body>
+{{ endblock }}

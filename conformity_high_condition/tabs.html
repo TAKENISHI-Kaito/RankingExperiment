@@ -1,0 +1,177 @@
+<link rel="stylesheet" href="{% static 'global/main.css' %}" />
+
+<div class="tab">
+    <h3>実験の概要</h3>
+    <p>この実験では、<b>あなたを含めた参加者5人</b>で、次のような問題について、全員の意見が一致するまで話し合いをしてもらいます。</p>
+        <div style="background-color: #e6e6e6;">
+            <p><b>人口が多い都市</b>はどちらですか？</p>
+            <ul ul  style="list-style-type:circle;">
+                <li>ベルリン</li>
+                <li>ミュンヘン</li>
+            </ul>
+        </div>
+    <ul><li>問題には必ず客観的な正解があります。</li>
+        <li>集団で話し合った結果が正解ならば、5人全員が報酬を受け取ります。</li>
+        <li>集団が選んだ選択肢が間違っていた場合、その問題での報酬額は0円です。</li>
+    </li></ul>
+    <p>このような話し合いを12問行います。</p>
+    <br>
+    <p>読み終わったら「次へ」のボタンを押してください。説明が続きます。</p>
+    <br>
+    <p><button type="button" class="btn-tab" data-offset="1">次へ</button></p>
+</div>
+
+<div class="tab">
+    <h3>話し合いの進め方（1）</h3>
+    <p>まず、話し合いの前に、誰にも相談せず、個人で問題に解答します。</p>
+    <div style="border: 1px solid #34b0e47d; font-size: 100%; padding: 20px;">
+        <img src="{{ static 'images/task.png' }}" width="100%"/>
+    </div>
+    <br>
+    <p>5人の参加者の回答を見ながら、話し合いを開始します。</p>
+    <p>読み終わったら「次へ」のボタンを押してください。説明が続きます。</p>
+    <br>
+    <div class="button-container">
+        <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+        <button type="button" class="btn-tab" data-offset="1">次へ</button>
+    </div>
+</div>
+
+<div class="tab">
+    <h3>話し合いの進め方（2）</h3>
+    <p>話し合いはチャットを通して行います。</p>
+    <p>これはチャットのサンプル画面です。</p>
+    <br>
+    <div style="border: 1px solid #34b0e47d; font-size: 100%; padding: 20px;">
+        <img src="{{ static 'images/chat.png' }}" width="100%"/>
+    </div>
+    <br>
+    <p>読み終わったら「次へ」のボタンを押してください。説明が続きます。</p>
+    <br>
+    <div class="button-container">
+        <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+        <button type="button" class="btn-tab" data-offset="1">次へ</button>
+    </div>
+</div>
+
+<div class="tab">
+    <h3>話し合いの進め方（3）</h3>
+    <p>話し合いが始まって2分経過したら、話し合いは一時休止します。</p>
+    <ul><li>自動的に画面が切り替わります。</li>
+    <li>その時点で、あなたが正しいと思う選択肢を選んでください。</li>
+    <li>もし全員が同じ選択肢を選んでいれば、話し合いは終了します。</li>
+    <li>もし全員の意見が一致しなかったら、話し合いは再開されます。</li></ul>
+    <br>
+    <p>※ただし、初回の解答で全員一致しても、1度は話し合ってもらいます。</p>
+    <br>
+    <p>以上が実験の概要です。次に、実験の流れについてお伝えします。</p>
+    <br>
+    <div class="button-container">
+        <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+        <button type="button" class="btn-tab" data-offset="1">次へ</button>
+    </div>
+</div>
+
+<div class="tab">
+    <h3>実験の流れについて</h3>
+    <p>全員の意見が一致して話し合いが終わったら、次の問題に移ります。</p>
+    <p>次の問題も、同じ手順で話し合いをしていただきます。</p>
+    <p>問題ごとに、参加者の番号（1〜5）が割り当てられます。したがって、前の問題で誰が何を発言したのかは、わからないようになっています。</p>
+    <p>これを複数の問題について、繰り返していただきます。</p>
+    <br>
+    <p>以上が実験の流れです。次に、チャット画面における名前についてお伝えします。</p>
+    <br>
+    <div class="button-container">
+        <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+        <button type="button" class="btn-tab" data-offset="1">次へ</button>
+    </div>
+</div>
+
+<div class="tab">
+    <h3>チャット画面における名前について</h3>
+        <p>話し合いは匿名で行います。</p>
+        <p>チャット画面では問題ごとに、異なる名前（1番さん〜5番さん）を使って参加者を表示します。</p>
+        <p>したがって、今回の話し合いで「2番さん」と表示された参加者は、次の話し合いでは別の名前がランダムに割り振られます。</p>
+        <p>こうして、誰がどの問題で何を言ったのか特定できないようになっています。</p>
+        <p>匿名性を保持するために、<b>名前や性別、学部など身元に関わる内容は書き込まないでください</b>。それ以外は、問題に関することならば自由に書き込めます。</p>
+        <br>
+        <p>次に、実験の報酬について説明します。</p>
+        <br>
+        <div class="button-container">
+            <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+            <button type="button" class="btn-tab" data-offset="1">次へ</button>
+        </div>
+</div>
+
+<div class="tab">
+    <h3>実験の報酬について</h3>
+        <p>参加の謝礼として、700円をお支払いします。これが最低報酬額です。</p>
+        <p>さらに、<b>集団の正解数が増えるほど、報酬額は増加します</b>。
+        <p>正答1問あたりの報酬は50円です。</p>
+        <p>したがって、全12問正解した場合の報酬額は、700円＋12問×50円で1,300円となります。</p>
+        <br>
+        <p>次に、話し合いの制限時間について説明します。</p>
+        <br>
+        <div class="button-container">
+            <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+            <button type="button" class="btn-tab" data-offset="1">次へ</button>
+        </div>
+</div>
+
+<div class="tab">
+    <h3>話し合いの制限時間について</h3>
+        <p>既に説明した通り、2分経過すると話し合いは中断して、個人の意見を尋ねる画面が表示されます。</p>
+        <p>一定の時間内に意見が一致しなかったら、話し合いは強制的に終了します。その場合、<b>その問題の報酬額は0円となります</b></b>。
+        <p>ただし、いつ話し合いが強制終了となるかは、コンピュータがランダムに決定します。また12問の問題ごとに、異なるタイミングで強制終了されます。</p>
+        <br>
+        <p>次に、話し合いの注意点について説明します。</p>
+        <br>
+        <div class="button-container">
+            <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+            <button type="button" class="btn-tab" data-offset="1">次へ</button>
+        </div>
+</div>
+
+<div class="tab">
+    <h3>話し合いで注意して欲しいこと</h3>
+        <p>話し合いでは、できるだけ早く意見が一致するようにしてください。</p>
+        <p><b>話し合いが長引くと、強制終了されて、報酬がもらえません</b>。</p>
+        <p>報酬を得るためには、全員の意見が一致していることが必要となります。</p>
+        <p>したがって、意見が割れたら、時間をかけずにできるだけ早く意見を一致させるよう心がけてください。</p>
+        <br>
+        <p>最後に、解答する上での心構えについてお伝えします。</p>
+        <br>
+        <div class="button-container">
+            <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+            <button type="button" class="btn-tab" data-offset="1">次へ</button>
+        </div>
+</div>
+
+<div class="tab">
+    <h3>解答する上での心構え</h3>
+        <p>解答に際しては、<b>決して資料を見たりや他の人と相談したりせず、自身の判断で解答してください</b>。</p>
+        <p>また、実験中、紙にメモをとる行為もご遠慮ください。</p>
+        <p>実験者がこれらの行為を見つけた場合、その時点で実験を終了させていただきます。</p>
+        <br>
+        <p>次の画面から課題が始まります。<b>ここから先は、ページを戻ることができません</b>。</p>
+        <br>
+        <div>
+            <h5>注意</h5>
+            <ul>
+                <li>一度解答したら後から変更することができません。</li>
+                <li>ブラウザの「戻る」ボタンは押さないでください。</li>
+            </ul>
+        </div>
+        <br>
+        <div class="button-container">
+            <button type="button" class="btn-tab" data-offset="-1">戻る</button>
+            <button type="submit">次へ</button>
+        </div>
+</div>
+
+<style>
+    .button-container {
+        display: flex;
+        gap: 20px; /* ボタン間の間隔を設定 */
+    }
+</style>

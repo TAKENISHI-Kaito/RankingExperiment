@@ -1,13 +1,20 @@
 from os import environ
 
 SESSION_CONFIGS = [
-    {
-        'name': 'unanimity_experiment',
-        'app_sequence': [
-            'ranking_discussion',
+    dict(
+        name = 'conformity_low_condition',
+        app_sequence = [
+            'conformity_low_condition'
         ],
-        'num_demo_participants': 5,
-    },
+        num_demo_participants = 5,
+    ),
+    dict(
+        name = 'conformity_high_condition',
+        app_sequence = [
+            'conformity_high_condition'
+        ],
+        num_demo_participants = 5,
+    ),
 ]
 
 

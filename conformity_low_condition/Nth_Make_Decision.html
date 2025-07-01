@@ -1,0 +1,59 @@
+{{ block title }}
+現在のあなたの意見を教えてください。
+{{ endblock }}
+
+{{ block content }}
+<body oncontextmenu="return false;">
+    <link rel="stylesheet" href="{% static 'global/main.css' %}" />
+
+        <p><b>{{ question }}</b>はどちらですか？</p>
+
+        <form method="post">
+            <p>
+                <label>
+                    <input type="radio" name="nth_decision_making" value="{{ option1 }}" required> {{ option1 }}
+                </label>
+            </p>
+            <p>
+                <label>
+                    <input type="radio" name="nth_decision_making" value="{{ option2 }}" required> {{ option2 }}
+                </label>
+            </p>
+
+            <br>
+
+            <p><b>{{ confidence_question }}</b></p>
+            <p class="small-font">まったく自信がない ---------------------------------------------- とても自信がある</p>
+            <div class="confidence-container">
+                {% for choice in confidence_choices %}
+                    <label class="confidence-option">
+                        <input type="radio" name="nth_confidence" value="{{ choice }}" required> {{ choice }}
+                    </label>
+                {% endfor %}
+            </div>
+
+            <br>
+            <br>
+            <br>
+            <br>
+
+            <button type="submit">次へ</button>
+        </form>
+
+        <style>
+            .confidence-container {
+                display: flex;  /* 横並びにする */
+                gap: 32pt;  /* 各ラジオボタンの間隔 */
+                flex-wrap: wrap; /* 画面幅が狭いとき折り返し */
+            }
+
+            .confidence-option {
+                display: inline-block;
+            }
+
+            .small-font {
+                font-size: 18pt !important;
+        }
+        </style>
+</body>
+{{ endblock }}

@@ -1,0 +1,252 @@
+{{ block title }}
+先ほどの問題について話し合ってください。
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .otree-chat {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        height: 330px;
+        padding: 5px 5px 0 5px;
+        border-radius: 7px;
+        background-color: #fbfeff;
+    }
+
+    .otree-chat__messages {
+        padding: 0 5px;
+        height: 260px !important;
+        background-color: #fbfeff !important;
+        overflow-x: hidden !important;
+        border-bottom: 1px solid #eee;
+    }
+
+    .otree-chat__nickname {
+        width: 920px !important;
+        font-size: 13px;
+        color: #197dcfa3 !important;
+    }
+
+    .otree-chat__body {
+        display: block;
+        border: solid #6f80a575;
+        border-width: 0 2px 2px 0;
+        border-radius: 7px;
+        padding: 8px 10px;
+        margin: 0 400px 6px 10px;
+        box-shadow: 4px 4px 4px -1px rgb(0 0 0 / 8%);
+        font-size: 16px;
+        background-color: #34b0e47d;
+    }
+
+    .otree-chat__input {
+        width: 800px;
+        height: 38px;
+        border: none;
+        border-radius: 7px;
+        background-color: #eee;
+        padding: 0 10px;
+        margin: 8px 10px 0 10px;
+        font-size: 16;
+    }
+
+    .otree-chat__input:focus {
+        outline: none;
+        border: 1px solid #05b1d1;
+    }
+
+    .otree-chat__btn-send {
+        outline: none;
+        border: 1px solid #05b1d1;
+        background-color: #34b0e47d;
+    }
+
+    .otree-timer {
+        display: none;
+    }
+
+    .btn {
+        height: 38px;
+        font-size: 17px !important;
+        margin: 8px 10px 0 0;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 4px;
+        border: none;
+    }
+
+    .modal-element {
+        background-color: white;
+        margin-bottom: 4px;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .modal-value {
+        font-size: 12px;
+        float: left;
+        margin-top: 11px;
+    }
+
+    .bi-info-circle-fill {
+        color: #0096ff;
+        float: left;
+        margin: 11px 11px 11px 15px;
+    }
+
+    .bi-x {
+        color: rgb(160, 160, 160);
+        float: left;
+        margin: 11px 0 0 38px;
+    }
+
+    .field {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    ul{
+        display: flex;
+    }
+    li{
+        list-style: none;
+        margin-left: 20px;
+    }
+</style>
+
+<link rel="stylesheet" href="{% static 'global/main.css' %}" />
+{{ endblock }}
+
+{{ block content }}
+<body oncontextmenu="return false;">
+    <input type="hidden" id="my-nickname" value="{{ nickname }}">
+
+    <div class="modal fade bd-example-modal-sm" id="myModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-element">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+                        <path
+                        d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+                    </svg>
+                    <div class="modal-value">もっと活発に話し合いましょう！</div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: #34b0e47d; border: 1px solid #34b0e47d; padding-left: 30px;">
+        <b>問題</b>：{{ question }}はどちらですか？
+    </div>
+    <div style="border: 1px solid #34b0e47d; font-size: 100%; padding: 20px;">
+        <p>あなたは <b>{{ decision }}</b> を選択しました。</p>
+        <p>あなたを含めた5人の意見は以下のとおりです。</p>
+        <div style="background:#FFF3CD; border: 1px solid 	#FFF3CD; padding-left: 10px;">
+            <b>{{ option1 }}</b>を選択した人：{{ count_option1 }}人
+        </div>
+        <div style="background: #FFF3CD; border: 1px solid #FFF3CD; padding-left: 10px;">
+            <b>{{ option2 }}</b>を選択した人：{{ count_option2 }}人
+        </div>
+    </div>
+
+    <br>
+
+    <p>話し合いは、以下のチャット機能を利用してください。</p>
+    <p>あなたの名前は <b>{{ nickname }}</b> です。</p>
+    {{ chat nickname=nickname}}
+
+</body>
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    // 以下はチャット履歴を復元するためのコード（今回は実装していないが、今後のために記録）
+    // const parent = document.getElementsByClassName('otree-chat__messages')[0];
+
+    // const new_msg_div = (nickname, body) => {
+    //     const msg_div = document.createElement('div');
+    //     msg_div.classList.add('otree-chat__msg');
+    //     let span_nickname = document.createElement('span');
+    //     if (nickname == document.getElementById('my-nickname').value) {
+    //         span_nickname.classList.add('otree-chat__nickname');
+    //         span_nickname.innerText = nickname + '（自分）';
+    //     } else {
+    //         span_nickname.classList.add('otree-chat__nickname');
+    //         span_nickname.innerText = nickname;
+    //     }
+    //     let span_body = document.createElement('span');
+    //     span_body.classList.add('otree-chat__body');
+    //     span_body.innerText = body;
+    //     msg_div.append(span_nickname, span_body);
+    //     return msg_div;
+    // }
+
+    // function liveRecv(data){
+    //     console.log(data);
+    //     console.log(data.length);
+    //     for (let i = 0; i < data.length; i++) {
+    //         let msg_div = new_msg_div(data[i]['nickname'], data[i]['message']);
+    //         parent.append(msg_div);
+    //     }
+    // };
+
+    // window.addEventListener('DOMContentLoaded', () => {
+    //     // console.log('pocha1');
+    //     liveSend({});
+    //     // console.log('pocha2');
+    // });
+
+    // function sendChat() {
+    //     // const nickname = document.getElementsByClassName('otree-chat__nickname')[0].innerText;
+    //     const nickname = document.getElementById('my-nickname').value;
+    //     const message = document.getElementsByClassName('otree-chat__input')[0].value;
+    //     liveSend({'nickname': nickname, 'message': message});
+    // }
+
+    // const button = document.getElementsByClassName('otree-chat__btn-send')[0];
+    // button.addEventListener('click', sendChat, false);
+
+    // const input = document.getElementsByClassName('otree-chat__input')[0];
+    // input.addEventListener('keydown', function (e) {
+    //     if (e.key === 'Enter') {
+    //         e.preventDefault();
+    //     }
+    // });
+
+    let id;
+    let isSet = false;
+    window.addEventListener('DOMContentLoaded', () => {
+        id_patrol = setInterval(patrol, 2000);
+    });
+
+    var patrol = function () {
+        let text = document.getElementsByClassName("otree-chat__input")[0].value;
+        console.log(isSet);
+        if (text === "" && isSet === false) {
+            id_announce = setTimeout(announce, 60000);
+            isSet = true;
+        } else if (text !== "") {
+            clearTimeout(id_announce);
+            isSet = false;
+        }
+    }
+
+    var announce = function () {
+        $('#myModal').modal('show')
+        $('#myModal').on('hidden.bs.modal', function (e) {
+            isSet = false;
+        });
+    }
+
+    let x = document.getElementsByClassName("bi-x")[0];
+    x.addEventListener("click", () => {
+        $('#myModal').modal('hide')
+        isSet = false;
+        });
+</script>
+
+{{ endblock }}

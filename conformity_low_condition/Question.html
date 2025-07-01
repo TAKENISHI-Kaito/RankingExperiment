@@ -1,0 +1,45 @@
+{{ block title }}
+{% if round == 1 %}
+    チャットの練習
+{% endif %}
+{{ endblock }}
+
+{{ block content }}
+<body oncontextmenu="return false;">
+    <link rel="stylesheet" href="{% static 'global/main.css' %}" />
+
+    {% if round == 1 %}
+        <p>まず、チャット画面の使い方を理解してもらうために、以下のテーマで議論してください。</p>
+    {% else %}
+        <p> これから、以下の問題について考えてもらいます。</p>
+    {% endif %}
+
+    <div style="background-color: #e6e6e6;">
+        <p>
+            <b> {{ question }} </b>はどちらですか？
+        </p>
+        <ul ul  style="list-style-type:circle;">
+            <li> {{ option1 }} </li>
+            <li> {{ option2 }} </li>
+        </ul>
+    </div>
+
+    {% if annotations %}
+        <small>注）</small>
+    {% endif %}
+    <ul>
+        {% for note in annotations %}
+            <li><small>{{ note }}</small></li>
+        {% endfor %}
+    </ul>
+
+    <br>
+
+    <p>
+        「次へ」を押して解答を始めてください。
+    </p>
+
+        <br>
+        <button type="submit">次へ</button>
+</body>
+{{ endblock }}

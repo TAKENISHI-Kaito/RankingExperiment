@@ -1,0 +1,32 @@
+{{ block title }}
+練習問題終了
+{{ endblock }}
+
+{{ block content }}
+<body oncontextmenu="return false;">
+    <link rel="stylesheet" href="{% static 'global/main.css' %}" />
+
+        <p>以上で練習問題は終了です。</p>
+        <p>次のページから、本番の問題が始まります。</p>
+        <br>
+        <p>「次へ」を押して解答を始めてください。</p>
+        <br>
+        <button type="submit">次へ</button>
+
+        <style>
+            .confidence-container {
+                display: flex;  /* 横並びにする */
+                gap: 32pt;  /* 各ラジオボタンの間隔 */
+                flex-wrap: wrap; /* 画面幅が狭いとき折り返し */
+            }
+
+            .confidence-option {
+                display: inline-block;
+            }
+
+            .small-font {
+                font-size: 18pt !important;
+        }
+        </style>
+</body>
+{{ endblock }}

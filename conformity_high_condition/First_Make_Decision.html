@@ -1,5 +1,11 @@
 {{ block title }}
-{{ idx }} 問目（全{{ sum_questions }}問）
+
+{% if round == 1 %}
+    練習問題
+{% else %}
+    {{ idx }} 問目（全{{ sum_questions }}問）
+{% endif %}
+
 {{ endblock }}
 
 {{ block content }}
@@ -23,8 +29,12 @@
             <br>
 
             <p><b>{{ confidence_question }}</b></p>
-            <p class="small-font">まったく自信がない ---------------------------------------------- とても自信がある</p>
-            <div class="confidence-container">
+            {% if round == 1 %}
+            <p class="small-font">まったく行きたくない ---------------------------------------------- とても行きたい</p>
+            {% else %}
+                <p class="small-font">まったく自信がない ---------------------------------------------- とても自信がある</p>
+            {% endif %}
+                <div class="confidence-container">
                 {% for choice in confidence_choices %}
                     <label class="confidence-option">
                         <input type="radio" name="first_confidence" value="{{ choice }}" required> {{ choice }}

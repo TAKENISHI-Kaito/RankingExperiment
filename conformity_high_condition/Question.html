@@ -1,8 +1,18 @@
+{{ block title }}
+{% if round == 1 %}
+    チャットの練習
+{% endif %}
+{{ endblock }}
+
 {{ block content }}
 <body oncontextmenu="return false;">
     <link rel="stylesheet" href="{% static 'global/main.css' %}" />
 
-    <p> これから、以下の問題について考えてもらいます。</p>
+    {% if round == 1 %}
+        <p>まず、チャット画面の使い方を理解してもらうために、以下のテーマで議論してください。</p>
+    {% else %}
+        <p> これから、以下の問題について考えてもらいます。</p>
+    {% endif %}
 
     <div style="background-color: #e6e6e6;">
         <p>
