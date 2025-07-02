@@ -461,6 +461,7 @@ class Results(Page):
             task_correct_count.append(true_false)
         correct_count = sum(task_correct_count)
         reward = 700 + 50*correct_count
+        print(f'ID: {player.participant.code}, Reward: {reward}円')
         return {
             'total_questions': len(player.participant.vars['all_tasks']) - 1,
             'correct_count': correct_count,
