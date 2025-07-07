@@ -17,6 +17,7 @@ li {
   font-family: "メイリオ", "Meiryo", sans-serif;
   font-size: 20pt;
   color: Black;
+  user-select: none;
 }
 
 .btn {

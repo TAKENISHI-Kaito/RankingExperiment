@@ -6,7 +6,7 @@ import numpy as np
 from otree.api import *
 
 import json
-with open('./conformity_high_condition/tasks_info.json') as f:
+with open('./conformity_low_condition/tasks_info.json') as f:
     tasks_info = json.load(f)
 
 doc = """
@@ -15,7 +15,7 @@ Ranking Task Experiment
 rng = np.random.default_rng()
 
 class C(BaseConstants):
-    NAME_IN_URL = 'conformity_high_condition'
+    NAME_IN_URL = 'conformity_low_condition'
     PLAYERS_PER_GROUP = None
     TASKS_INFO = tasks_info
     NUM_PAIRS = 2
@@ -215,7 +215,8 @@ class First_Make_Decision(Page):
         idx = player.participant.vars['current_task_index']
         current_question = player.participant.vars['all_tasks'][idx]
         current_kind = current_question['kind']
-        degree_question = 'どのくらい好きですか？' if player.round_number == 1 else 'その判断にどのくらい自信がありますか？'
+        current_task = player.participant.vars['all_tasks'][idx]['kind']
+        current_task_info = next(task for task in C.TASKS_INFO if task['kind'] == current_task)
         return {
             'round': player.round_number,
             'idx': idx,
@@ -223,8 +224,9 @@ class First_Make_Decision(Page):
             'question': current_question['question'],
             'option1': current_question['option1'],
             'option2': current_question['option2'],
-            'confidence_question': degree_question,
-            'confidence_choices': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+            'confidence_question': 'その判断にどのくらい自信がありますか？',
+            'confidence_choices': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+            'annotations': current_task_info['annotation'],
         }
 
     @staticmethod
@@ -237,11 +239,10 @@ class First_Make_Decision(Page):
         current_question = player.participant.vars['all_tasks'][idx]
         choice = player.first_decision_making
         true_false = None
-        if player.round_number != 1:
-            if choice == current_question['option1']:
-                true_false = 1 if current_question['rank1'] < current_question['rank2'] else 0
-            elif choice == current_question['option2']:
-                true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
+        if choice == current_question['option1']:
+            true_false = 1 if current_question['rank1'] < current_question['rank2'] else 0
+        elif choice == current_question['option2']:
+            true_false = 1 if current_question['rank2'] < current_question['rank1'] else 0
         confidence = player.first_confidence
         player.participant.vars[f'decision_making_round_{player.round_number}'] = player.first_decision_making
         player.participant.vars[f'choice_task{idx}'] = []
@@ -318,6 +319,8 @@ class Chat(Page):
         decisions = [p.participant.vars.get(f'decision_making_round_{prev_round}') for p in player.group.get_players()]
         count_option1 = sum(1 for d in decisions if d == current_question['option1'])
         count_option2 = sum(1 for d in decisions if d == current_question['option2'])
+        current_task = player.participant.vars['all_tasks'][idx]['kind']
+        current_task_info = next(task for task in C.TASKS_INFO if task['kind'] == current_task)
         return {
             'nickname': nickname,
             'decision': decision,
@@ -326,7 +329,8 @@ class Chat(Page):
             'option1': current_question['option1'],
             'option2': current_question['option2'],
             'count_option1': count_option1,
-            'count_option2': count_option2
+            'count_option2': count_option2,
+            'annotations': current_task_info['annotation'],
         }
 
 
@@ -354,12 +358,15 @@ class Nth_Make_Decision(Page):
         current_question = player.participant.vars['all_tasks'][idx]
         current_kind = current_question['kind']
         pair_num = sum(1 for q in player.participant.vars['all_tasks'][:idx] if q['kind'] == current_kind) + 1
+        current_task = player.participant.vars['all_tasks'][idx]['kind']
+        current_task_info = next(task for task in C.TASKS_INFO if task['kind'] == current_task)
         return {
             'question': current_question['question'],
             'option1': current_question['option1'],
             'option2': current_question['option2'],
             'confidence_question': 'その判断にどのくらい自信がありますか？',
-            'confidence_choices': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+            'confidence_choices': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+            'annotations': current_task_info['annotation'],
         }
 
     @staticmethod
@@ -524,7 +531,7 @@ def custom_export(players):
                         p.participant.code,
                         p.session.code,
                         p.participant.time_started_utc,
-                        1,
+                        0,
                         p.participant.vars.get('group_id_number'),
                         p.participant.vars.get('individual_id_number'),
                         p.participant.vars.get('gender'),
