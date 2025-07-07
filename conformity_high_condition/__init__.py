@@ -6,7 +6,7 @@ import numpy as np
 from otree.api import *
 
 import json
-with open('./conformity_low_condition/tasks_info.json') as f:
+with open('./conformity_high_condition/tasks_info.json') as f:
     tasks_info = json.load(f)
 
 doc = """
@@ -15,7 +15,7 @@ Ranking Task Experiment
 rng = np.random.default_rng()
 
 class C(BaseConstants):
-    NAME_IN_URL = 'conformity_low_condition'
+    NAME_IN_URL = 'conformity_high_condition'
     PLAYERS_PER_GROUP = None
     TASKS_INFO = tasks_info
     NUM_PAIRS = 2
@@ -531,7 +531,7 @@ def custom_export(players):
                         p.participant.code,
                         p.session.code,
                         p.participant.time_started_utc,
-                        0,
+                        1,
                         p.participant.vars.get('group_id_number'),
                         p.participant.vars.get('individual_id_number'),
                         p.participant.vars.get('gender'),
