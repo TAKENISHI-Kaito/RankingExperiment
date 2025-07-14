@@ -417,10 +417,10 @@ class Wait_Decision(WaitPage):
         idx = group.get_players()[0].participant.vars['current_task_index']
         decisions = [p.participant.vars.get(f'decision_making_round_{p.round_number}') for p in group.get_players()]
         if all(d == decisions[0] for d in decisions):
-            true_false = group.get_players()[0].participant.vars.get(f'choice_task{idx}')[-1]['true_false']
+            # true_false = group.get_players()[0].participant.vars.get(f'choice_task{idx}')[-1]['true_false']
             for p in group.get_players():
                 p.participant.vars[f'task{idx}_finished'] = p.round_number
-                p.participant.vars[f'task{idx}_group_choice'] = true_false
+                # p.participant.vars[f'task{idx}_group_choice'] = true_false
             if idx + 1 < len(group.get_players()[0].participant.vars['all_tasks']):
                 for p in group.get_players():
                     p.participant.vars[f'is_finished_round_{p.round_number}'] = True
@@ -451,6 +451,7 @@ class Unanimity(Page):
         idx = player.participant.vars['current_task_index']
         player.participant.vars['current_task_index'] = idx + 1
         player.participant.vars[f'is_finished_round_{player.round_number + 1}'] = False
+        player.participant.vars[f'task{idx}_group_choice'] = player.participant.vars.get(f'choice_task{idx}')[-1]['true_false']
 
 
 class Results(Page):
@@ -461,7 +462,7 @@ class Results(Page):
     @staticmethod
     def vars_for_template(player):
         task_correct_count = []
-        for idx in range(len(player.participant.vars['all_tasks'])):
+        for idx in range(1, len(player.participant.vars['all_tasks'])):
             true_false = player.participant.vars.get(f'task{idx}_group_choice')
             if true_false is None:
                 true_false = 0
